@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survey Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .task-type-header {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+
+        .section-header {
+            margin-top: 40px;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .user-checkbox {
+            margin-right: 10px;
+        }
+
+        .button-group {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .reset-db-button {
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .reset-db-button:hover {
+            background-color: #d32f2f;
+        }
+
+        .update-button {
+            padding: 10px 20px;
+            background-color: darkgray;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .update-button:hover {
+            background-color: gray;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Survey Results</h1>
+
+        <form method="POST" action="{{ url_for('results') }}">
+            <div class="section-header">Select Users to Include in Statistics</div>
+            {% for user in all_users %}
+            <div>
+                <input type="checkbox" name="users" value="{{ user.name }}" class="user-checkbox" {% if
+                    user_summary[user.name]['include_in_statistics'] %}checked{% endif %}>
+                <label>{{ user.name }}</label>
+            </div>
+            {% endfor %}
+
+            <div class="button-group">
+                <button type="submit" class="update-button">Update Statistics</button>
+            </div>
+        </form>
+
+        <div class="section-header">Overall Model Statistics</div>
+        {% for task_type, models in results_summary.items() %}
+        <h2>Task Type: {{ task_type }}</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model Name</th>
+                    <th>Mean Score</th>
+                    <th>Standard Deviation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model in models %}
+                <tr>
+                    <td>{{ model.model_name }}</td>
+                    <td>{{ model.mean_score }}</td>
+                    <td>{{ model.stddev_score }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
+
+        <div class="section-header">Individual User Statistics</div>
+        {% for user_name, user_data in user_summary.items() %}
+        <h2>User: {{ user_name }}</h2>
+        <h3>Task Type: {{ user_data.task_type }}</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model Name</th>
+                    <th>Mean Score</th>
+                    <th>Standard Deviation</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model in user_data['task_summary'] %}
+                <tr>
+                    <td>{{ model.model_name }}</td>
+                    <td>{{ model.mean_score }}</td>
+                    <td>{{ model.stddev_score }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
+
+        <div class="button-group">
+            <button type="button" class="reset-db-button" onclick="location.href='{{ url_for('reset_db') }}'">Reset
+                DB</button>
+        </div>
+    </div>
+</body>
+
+</html>
