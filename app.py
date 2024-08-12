@@ -257,13 +257,10 @@ def end():
 @app.route("/results", methods=["GET", "POST"])
 @login_required
 def results():
-    # Get the list of selected users (those whose checkboxes are checked)
     selected_users = request.form.getlist("users") if request.method == "POST" else None
-
-    # Fetch all users to ensure they are displayed on the results page
     all_users = User.query.all()
 
-    # Prepare the query for statistical calculations
+    # Prepare the query for calculating mean and standard deviation
     query = (
         db.session.query(
             User.task_type,
@@ -275,14 +272,12 @@ def results():
         .group_by(User.task_type, Score.model_name)
     )
 
-    # If users are selected, filter the query
+    # Filter the query if users are selected
     if selected_users:
         query = query.filter(User.name.in_(selected_users))
 
-    # Execute the query
+    # Execute the query and process results
     results_data = query.all()
-
-    # Process the results as before
     results_summary = {}
     for task_type, model_name, mean_score, all_scores in results_data:
         scores_list = list(map(int, all_scores.split(",")))
@@ -298,10 +293,11 @@ def results():
             }
         )
 
-    # Query to get individual user statistics, but only include selected users in calculations
+    # Calculate individual user statistics including the number of samples rated
     user_summary = {}
     for user in all_users:
         user_task_summary = []
+        num_samples = Score.query.filter_by(user_id=user.id).count()
         for task_type, model_name, mean_score, all_scores in (
             db.session.query(
                 User.task_type,
@@ -327,6 +323,7 @@ def results():
         user_summary[user.name] = {
             "task_type": user.task_type,
             "task_summary": user_task_summary,
+            "num_samples": num_samples,
             "include_in_statistics": (
                 user.name in selected_users if selected_users else True
             ),

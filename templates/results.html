@@ -143,6 +143,7 @@
         {% for user_name, user_data in user_summary.items() %}
         <h2>User: {{ user_name }}</h2>
         <h3>Task Type: {{ user_data.task_type }}</h3>
+        <h3>Number of Samples: {{ user_data.num_samples }}</h3>
         <table>
             <thead>
                 <tr>
