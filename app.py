@@ -17,6 +17,7 @@ from io import StringIO
 from sqlalchemy import func
 from statistics import mean, stdev
 from functools import wraps
+import numpy as np
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -281,7 +282,8 @@ def results():
     results_summary = {}
     for task_type, model_name, mean_score, all_scores in results_data:
         scores_list = list(map(int, all_scores.split(",")))
-        stddev_score = round(stdev(scores_list), 2) if len(scores_list) > 1 else 0
+        # stddev_score = round(stdev(scores_list), 2) if len(scores_list) > 1 else 0
+        stddev_score = 1.96 * np.std(scores_list) / np.sqrt(len(scores_list))
 
         if task_type not in results_summary:
             results_summary[task_type] = []
