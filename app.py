@@ -21,8 +21,8 @@ import numpy as np
 
 # Add your admin credentials here
 ADMIN_USERNAME = "jhkim"
-ADMIN_PASSWORD = "aaai2025"
-PROJECT_NAME = "AAAI2025_VTS"
+ADMIN_PASSWORD = "rlawogns02!"
+PROJECT_NAME = "2025_ICASSP_VC"
 
 
 app = Flask(__name__)
@@ -32,8 +32,9 @@ db = SQLAlchemy(app)
 
 # Sample directory structure
 models = os.listdir(os.path.join("static", "samples", PROJECT_NAME))
-models.remove("0_text")  # Remove '0_text' directory if it exists
-SAMPLE_DIRECTORIES = {model: f"static/samples/{PROJECT_NAME}/{model}" for model in models}
+SAMPLE_DIRECTORIES = {
+    model: f"static/samples/{PROJECT_NAME}/{model}" for model in models
+}
 
 samples = []
 
@@ -41,31 +42,29 @@ samples = []
 model_to_use_for_listing = "gt"  # Choose one model directory to list the filenames
 model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
 file_names = [
-    file_name for file_name in os.listdir(model_path) if file_name.endswith(".wav")
+    file_name for file_name in os.listdir(model_path) if file_name.endswith("pred.wav")
 ]
 
 # Now gather files from all model directories for each filename
 for file_name in file_names:
     files = []
     for model_name, model_path in SAMPLE_DIRECTORIES.items():
-        file_path = os.path.join(model_path, file_name)
-        text_path = os.path.join(
-            "static",
-            "samples",
-            PROJECT_NAME,
-            "0_text",
-            file_name.replace(".wav", ".txt"),
+        file_path_pred = os.path.join(model_path, file_name)
+        file_path_src = os.path.join(
+            model_path, file_name.replace("pred.wav", "src.wav")
         )
-        if os.path.exists(file_path):  # Ensure the file exists
-            text = open(text_path).read() if os.path.exists(text_path) else ""
+        file_path_ref = os.path.join(
+            model_path, file_name.replace("pred.wav", "ref.wav")
+        )
             # lowercase the text
-            text = text.lower()
+        if os.path.exists(file_path_pred):
             files.append(
                 {
                     "model_name": model_name,
                     "file_name": file_name,
-                    "file_path": file_path.replace("static/", ""),
-                    "text": text,
+                    "file_path_src": file_path_src.replace("static/", ""),
+                    "file_path_ref": file_path_ref.replace("static/", ""),
+                    "file_path_pred": file_path_pred.replace("static/", ""),
                 }
             )
     if files:
@@ -138,7 +137,7 @@ def start():
         task_type = request.form["task_type"]
         user = User.query.filter_by(name=name).first()
 
-        if not user:
+        if not user or user.task_type != task_type:
             # New user, create a new record
             num_pages = 20
             selected_samples = random.sample(
@@ -157,7 +156,10 @@ def start():
             db.session.add(user)
             db.session.commit()
         elif user.completed:
-            flash("You have already completed the survey.", "info")
+            flash(
+                "You have already completed the survey. \n Please use a different username or ask the administrator.",
+                "info",
+            )
             return redirect(url_for("end"))
 
         session["user_id"] = user.id

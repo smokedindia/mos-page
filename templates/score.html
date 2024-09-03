@@ -91,6 +91,48 @@
         .next-button:hover {
             background-color: gray;
         }
+
+
+        .audio-row {
+            display: table-row;
+        }
+        .audio-cell {
+            display: table-cell;
+            text-align: center;
+            vertical-align: middle;
+            width: 48%; /* Ensure both cells have the same width */
+            padding: 0 10px; /* Add padding to separate the elements */
+        }
+
+        .audio-section {
+            margin-bottom: 30px;
+            display: table;
+            width: 100%;
+            border-spacing: 15px; /* Space between the cells */
+        }
+
+        .audio-label {
+            margin-bottom: 10px; /* Increase space between label and audio player */
+        }
+        .divider {
+            margin: 30px 0;
+            border-top: 2px solid #ddd;
+        }
+
+        .media-controls {
+            margin-bottom: 0;
+            flex: 1;
+            text-align: center;
+        }
+
+
+        .audio-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #444;
+        }
+
     </style>
     <script>
         window.onload = function () {
@@ -132,7 +174,29 @@
     <div class="container">
         <div class="task-type">{{ task_type }}</div>
         <div class="page-number">Page {{ page }} of {{ total_pages }}</div>
-        <div class="sample-description">{{ samples[0].files[0].text }}</div>
+
+        <!-- New section for Source and Reference audio -->
+        <div class="audio-section">
+            <div class="audio-row">
+                <div class="audio-cell">
+                    <div class="audio-label">Source:</div>
+                    <audio controls style="width: 100%;">
+                        <source src="{{ url_for('static', filename=samples[0].files[0].file_path_src) }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+                <div class="audio-cell">
+                    <div class="audio-label">Reference:</div>
+                    <audio controls style="width: 100%;">
+                        <source src="{{ url_for('static', filename=samples[0].files[0].file_path_ref) }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+            </div>
+        </div>
+
+<!-- Divider -->
+<div class="divider"></div>
 
         {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -151,7 +215,7 @@
 
                 <div class="media-controls">
                     <audio controls style="width: 50%;">
-                        <source src="{{ url_for('static', filename=file.file_path) }}" type="audio/mpeg">
+                        <source src="{{ url_for('static', filename=file.file_path_pred) }}" type="audio/mpeg">
                         Your browser does not support the audio element.
                     </audio>
                 </div>
