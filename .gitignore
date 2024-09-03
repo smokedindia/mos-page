@@ -2,3 +2,6 @@ __pycache__
 static/samples
 *.json
 instance
+.DS_Store
+static
+*.ipynb
