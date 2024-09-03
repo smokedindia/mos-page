@@ -19,21 +19,21 @@ from statistics import mean, stdev
 from functools import wraps
 import numpy as np
 
-app = Flask(__name__)
-app.secret_key = "your_secret_key"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///survey.db"
-db = SQLAlchemy(app)
-
 # Add your admin credentials here
 ADMIN_USERNAME = "jhkim"
 ADMIN_PASSWORD = "aaai2025"
-PROJECT_NAME = "AAAI25_VTS"
+PROJECT_NAME = "AAAI2025_VTS"
 
+
+app = Flask(__name__)
+app.secret_key = "your_secret_key"
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{PROJECT_NAME}.db"
+db = SQLAlchemy(app)
 
 # Sample directory structure
 models = os.listdir(os.path.join("static", "samples", PROJECT_NAME))
 models.remove("0_text")  # Remove '0_text' directory if it exists
-SAMPLE_DIRECTORIES = {model: f"static/samples/AAAI25_VTS/{model}" for model in models}
+SAMPLE_DIRECTORIES = {model: f"static/samples/{PROJECT_NAME}/{model}" for model in models}
 
 samples = []
 
