@@ -195,9 +195,7 @@
 
         <div class="notification">
             {% if task_type == 'MOS_naturalness' %}
-            Please evaluate the naturalness of the samples, regardless of the intelligibility.
-            {% elif task_type == 'MOS_intelligibility' %}
-            Please evaluate the intelligibility with respect to the transcript, regardless of the speech quality.
+            Please evaluate the 'naturalness' and 'intelligibility' of the samples.
             {% elif task_type == 'MOS_similarity' %}
             Please evaluate the similarity between the samples and the reference utterance only.
             {% endif %}
@@ -239,7 +237,7 @@
         {% endwith %}
 
         <form method="POST">
-            {% if task_type == 'MOS_intelligibility' %}
+            {% if task_type == 'MOS_naturalness' %}
             <div class="transcript-text">
                 "{{ samples[0].transcript }}"
             </div>
