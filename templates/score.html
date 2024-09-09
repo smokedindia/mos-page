@@ -205,16 +205,16 @@
         <!-- New section for Source and Reference audio -->
         <div class="audio-section">
             <div class="audio-row">
-                <div class="audio-cell">
-                    <div class="audio-label">Source:</div>
-                    <audio controls style="width: 100%;">
-                        <source src="{{ url_for('static', filename=samples[0].file_path_src) }}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
-                </div>
+                <!-- <div class="audio-cell"> -->
+                    <!-- <div class="audio-label">Source:</div> -->
+                    <!-- <audio controls style="width: 100%;"> -->
+                        <!-- <source src="{{ url_for('static', filename=samples[0].file_path_src) }}" type="audio/mpeg"> -->
+                        <!-- Your browser does not support the audio element. -->
+                    <!-- </audio> -->
+                <!-- </div> -->
                 <div class="audio-cell">
                     <div class="audio-label">Reference:</div>
-                    <audio controls style="width: 100%;">
+                    <audio controls style="width: 50%;">
                         <source src="{{ url_for('static', filename=samples[0].file_path_ref) }}" type="audio/mpeg">
                         Your browser does not support the audio element.
                     </audio>
