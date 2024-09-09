@@ -18,6 +18,7 @@ from sqlalchemy import func
 from statistics import mean, stdev
 from functools import wraps
 import numpy as np
+import pandas as pd
 
 # Add your admin credentials here
 ADMIN_USERNAME = "jhkim"
@@ -39,154 +40,153 @@ SAMPLE_DIRECTORIES = {
 samples = []
 
 # Load sample filenames from one directory
-gt_path = SAMPLE_DIRECTORIES.pop('gt')
-# file_names = [
-#     file_name for file_name in os.listdir(gt_path) if file_name.endswith("tgt.wav")
-# ]
+gt_path = SAMPLE_DIRECTORIES.pop("gt")
 file_names = [
-    '006_tgt.wav',
-    '023_tgt.wav',
-    '026_tgt.wav',
-    '029_tgt.wav',
-    '039_tgt.wav',
-    '040_tgt.wav',
-    '041_tgt.wav',
-    '042_tgt.wav',
-    '043_tgt.wav',
-    '045_tgt.wav',
-    '048_tgt.wav',
-    '049_tgt.wav',
-    '054_tgt.wav',
-    '055_tgt.wav',
-    '058_tgt.wav',
-    '060_tgt.wav',
-    '062_tgt.wav',
-    '063_tgt.wav',
-    '064_tgt.wav',
-    '067_tgt.wav',
-    '068_tgt.wav',
-    '073_tgt.wav',
-    '077_tgt.wav',
-    '079_tgt.wav',
-    '080_tgt.wav',
-    '081_tgt.wav',
-    '082_tgt.wav',
-    '083_tgt.wav',
-    '085_tgt.wav',
-    '086_tgt.wav',
-    '087_tgt.wav',
-    '092_tgt.wav',
-    '096_tgt.wav',
-    '101_tgt.wav',
-    '102_tgt.wav',
-    '105_tgt.wav',
-    '111_tgt.wav',
-    '117_tgt.wav',
-    '118_tgt.wav',
-    '119_tgt.wav',
-    '120_tgt.wav',
-    '121_tgt.wav',
-    '123_tgt.wav',
-    '124_tgt.wav',
-    '125_tgt.wav',
-    '130_tgt.wav',
-    '133_tgt.wav',
-    '134_tgt.wav',
-    '136_tgt.wav',
-    '137_tgt.wav',
-    '138_tgt.wav',
-    '139_tgt.wav',
-    '140_tgt.wav',
-    '142_tgt.wav',
-    '143_tgt.wav',
-    '144_tgt.wav',
-    '145_tgt.wav',
-    '148_tgt.wav',
-    '149_tgt.wav',
-    '150_tgt.wav',
-    '152_tgt.wav',
-    '153_tgt.wav',
-    '156_tgt.wav',
-    '158_tgt.wav',
-    '159_tgt.wav',
-    '162_tgt.wav',
-    '163_tgt.wav',
-    '168_tgt.wav',
-    '178_tgt.wav',
-    '181_tgt.wav',
-    '188_tgt.wav',
-    '191_tgt.wav',
-    '194_tgt.wav',
-    '197_tgt.wav',
-    '198_tgt.wav',
-    '200_tgt.wav',
-    '201_tgt.wav',
-    '206_tgt.wav',
-    '207_tgt.wav',
-    '210_tgt.wav',
-    '213_tgt.wav',
-    '215_tgt.wav',
-    '217_tgt.wav',
-    '220_tgt.wav',
-    '225_tgt.wav',
-    '226_tgt.wav',
-    '229_tgt.wav',
-    '231_tgt.wav',
-    '233_tgt.wav',
-    '235_tgt.wav',
-    '236_tgt.wav',
-    '241_tgt.wav',
-    '244_tgt.wav',
-    '254_tgt.wav',
-    '257_tgt.wav',
-    '259_tgt.wav',
-    '263_tgt.wav',
-    '267_tgt.wav',
-    '273_tgt.wav',
-    '277_tgt.wav',
-    '278_tgt.wav',
-    '279_tgt.wav',
-    '282_tgt.wav',
-    '286_tgt.wav',
-    '289_tgt.wav',
-    '295_tgt.wav',
-    '296_tgt.wav',
-    '297_tgt.wav',
-    '300_tgt.wav',
-    '301_tgt.wav',
-    '311_tgt.wav',
-    '320_tgt.wav',
-    '329_tgt.wav',
-    '330_tgt.wav',
-    '331_tgt.wav',
-    '334_tgt.wav',
-    '335_tgt.wav',
-    '336_tgt.wav',
-    '343_tgt.wav',
-    '348_tgt.wav',
-    '349_tgt.wav',
-    '352_tgt.wav',
-    '353_tgt.wav',
-    '354_tgt.wav',
-    '359_tgt.wav',
-    '362_tgt.wav',
-    '371_tgt.wav',
-    '373_tgt.wav',
-    '379_tgt.wav'
+    file_name for file_name in os.listdir(gt_path) if file_name.endswith("tgt.wav")
 ]
+# file_names = [
+#     '006_tgt.wav',
+#     '023_tgt.wav',
+#     '026_tgt.wav',
+#     '029_tgt.wav',
+#     '039_tgt.wav',
+#     '040_tgt.wav',
+#     '041_tgt.wav',
+#     '042_tgt.wav',
+#     '043_tgt.wav',
+#     '045_tgt.wav',
+#     '048_tgt.wav',
+#     '049_tgt.wav',
+#     '054_tgt.wav',
+#     '055_tgt.wav',
+#     '058_tgt.wav',
+#     '060_tgt.wav',
+#     '062_tgt.wav',
+#     '063_tgt.wav',
+#     '064_tgt.wav',
+#     '067_tgt.wav',
+#     '068_tgt.wav',
+#     '073_tgt.wav',
+#     '077_tgt.wav',
+#     '079_tgt.wav',
+#     '080_tgt.wav',
+#     '081_tgt.wav',
+#     '082_tgt.wav',
+#     '083_tgt.wav',
+#     '085_tgt.wav',
+#     '086_tgt.wav',
+#     '087_tgt.wav',
+#     '092_tgt.wav',
+#     '096_tgt.wav',
+#     '101_tgt.wav',
+#     '102_tgt.wav',
+#     '105_tgt.wav',
+#     '111_tgt.wav',
+#     '117_tgt.wav',
+#     '118_tgt.wav',
+#     '119_tgt.wav',
+#     '120_tgt.wav',
+#     '121_tgt.wav',
+#     '123_tgt.wav',
+#     '124_tgt.wav',
+#     '125_tgt.wav',
+#     '130_tgt.wav',
+#     '133_tgt.wav',
+#     '134_tgt.wav',
+#     '136_tgt.wav',
+#     '137_tgt.wav',
+#     '138_tgt.wav',
+#     '139_tgt.wav',
+#     '140_tgt.wav',
+#     '142_tgt.wav',
+#     '143_tgt.wav',
+#     '144_tgt.wav',
+#     '145_tgt.wav',
+#     '148_tgt.wav',
+#     '149_tgt.wav',
+#     '150_tgt.wav',
+#     '152_tgt.wav',
+#     '153_tgt.wav',
+#     '156_tgt.wav',
+#     '158_tgt.wav',
+#     '159_tgt.wav',
+#     '162_tgt.wav',
+#     '163_tgt.wav',
+#     '168_tgt.wav',
+#     '178_tgt.wav',
+#     '181_tgt.wav',
+#     '188_tgt.wav',
+#     '191_tgt.wav',
+#     '194_tgt.wav',
+#     '197_tgt.wav',
+#     '198_tgt.wav',
+#     '200_tgt.wav',
+#     '201_tgt.wav',
+#     '206_tgt.wav',
+#     '207_tgt.wav',
+#     '210_tgt.wav',
+#     '213_tgt.wav',
+#     '215_tgt.wav',
+#     '217_tgt.wav',
+#     '220_tgt.wav',
+#     '225_tgt.wav',
+#     '226_tgt.wav',
+#     '229_tgt.wav',
+#     '231_tgt.wav',
+#     '233_tgt.wav',
+#     '235_tgt.wav',
+#     '236_tgt.wav',
+#     '241_tgt.wav',
+#     '244_tgt.wav',
+#     '254_tgt.wav',
+#     '257_tgt.wav',
+#     '259_tgt.wav',
+#     '263_tgt.wav',
+#     '267_tgt.wav',
+#     '273_tgt.wav',
+#     '277_tgt.wav',
+#     '278_tgt.wav',
+#     '279_tgt.wav',
+#     '282_tgt.wav',
+#     '286_tgt.wav',
+#     '289_tgt.wav',
+#     '295_tgt.wav',
+#     '296_tgt.wav',
+#     '297_tgt.wav',
+#     '300_tgt.wav',
+#     '301_tgt.wav',
+#     '311_tgt.wav',
+#     '320_tgt.wav',
+#     '329_tgt.wav',
+#     '330_tgt.wav',
+#     '331_tgt.wav',
+#     '334_tgt.wav',
+#     '335_tgt.wav',
+#     '336_tgt.wav',
+#     '343_tgt.wav',
+#     '348_tgt.wav',
+#     '349_tgt.wav',
+#     '352_tgt.wav',
+#     '353_tgt.wav',
+#     '354_tgt.wav',
+#     '359_tgt.wav',
+#     '362_tgt.wav',
+#     '371_tgt.wav',
+#     '373_tgt.wav',
+#     '379_tgt.wav'
+# ]
 
 # Now gather files from all model directories for each filename
+df = pd.read_csv('vctk.csv')
 for file_name in file_names:
     files = []
-    file_path_src = os.path.join(
-        gt_path, file_name.replace("tgt.wav", "src.wav")
-    )
-    file_path_ref = os.path.join(
-        gt_path, file_name.replace("tgt.wav", "ref.wav")
-    )
+    file_path_src = os.path.join(gt_path, file_name.replace("tgt.wav", "src.wav"))
+    file_path_ref = os.path.join(gt_path, file_name.replace("tgt.wav", "ref.wav"))
     for model_name, model_path in SAMPLE_DIRECTORIES.items():
-        file_path_pred = os.path.join(model_path, file_name).replace("tgt.wav", "pred.wav")
-            # lowercase the text
+        file_path_pred = os.path.join(model_path, file_name).replace(
+            "tgt.wav", "pred.wav"
+        )
+        # lowercase the text
         if os.path.exists(file_path_pred):
             files.append(
                 {
@@ -196,13 +196,22 @@ for file_name in file_names:
                 }
             )
     if files:
-        samples.append({"file_name": file_name, "files": files, "file_path_src": file_path_src.replace("static/", ""), "file_path_ref": file_path_ref.replace("static/", "")})
+        transcript = df.iloc[int(os.path.basename(file_path_src).split("_")[0])].text
+        samples.append(
+            {
+                "file_name": file_name,
+                "files": files,
+                "file_path_src": file_path_src.replace("static/", ""),
+                "file_path_ref": file_path_ref.replace("static/", ""),
+                "transcript": transcript,
+            }
+        )
 
 
 # Database Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), unique=True, nullable=False)
+    name = db.Column(db.String(50), nullable=False)
     task_type = db.Column(db.String(50), nullable=False)
     completed = db.Column(db.Boolean, default=False)
     sample_sequence = db.Column(db.Text, nullable=True)  # Store the sequence of samples
@@ -213,6 +222,7 @@ class User(db.Model):
 class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    # score_type = db.Column(db.String(50), nullable=False)
     model_name = db.Column(db.String(100), nullable=False)
     file_name = db.Column(db.String(100), nullable=False)
     score = db.Column(db.Integer, nullable=False)
@@ -537,4 +547,4 @@ def export_data(file_type):
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=3171)

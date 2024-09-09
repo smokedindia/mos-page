@@ -132,6 +132,18 @@
             margin-bottom: 10px;
             color: #444;
         }
+        .transcript-text {
+            font-family: "Times New Roman", Times, serif;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+        .notification {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #555;
+            font-family: 'Georgia', serif;
+        }
 
     </style>
     <script>
@@ -172,9 +184,26 @@
 
 <body>
     <div class="container">
-        <div class="task-type">{{ task_type }}</div>
+        {% if task_type == 'MOS_naturalness' %}
+        <div class="task-type">MOS Naturalness</div>
+        {% elif task_type == 'MOS_intelligibility' %}
+        <div class="task-type">MOS Intelligibility</div>
+        {% elif task_type == 'MOS_similarity' %}
+        <div class="task-type">MOS Similarity</div>
+        {% endif %}
         <div class="page-number">Page {{ page }} of {{ total_pages }}</div>
 
+        <div class="notification">
+            {% if task_type == 'MOS_naturalness' %}
+            Please evaluate the naturalness of the samples, regardless of the intelligibility.
+            {% elif task_type == 'MOS_intelligibility' %}
+            Please evaluate the intelligibility with respect to the transcript, regardless of the speech quality.
+            {% elif task_type == 'MOS_similarity' %}
+            Please evaluate the similarity between the samples and the reference utterance only.
+            {% endif %}
+        </div>
+
+        {% if task_type == 'MOS_similarity' %}
         <!-- New section for Source and Reference audio -->
         <div class="audio-section">
             <div class="audio-row">
@@ -194,6 +223,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
 <!-- Divider -->
 <div class="divider"></div>
@@ -209,6 +239,11 @@
         {% endwith %}
 
         <form method="POST">
+            {% if task_type == 'MOS_intelligibility' %}
+            <div class="transcript-text">
+                "{{ samples[0].transcript }}"
+            </div>
+            {% endif %}
             {% for file in samples[0].files %}
             <div class="sample-container">
                 <!-- <div class="sample-description">{{ file.model_name }}: {{ file.file_name }}</div> -->

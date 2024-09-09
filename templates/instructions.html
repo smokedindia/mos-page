@@ -56,7 +56,7 @@
 <body>
     <div class="container">
         <h1>Instructions</h1>
-
+        <!-- Instruction Text -->
         {% if task_type == 'MOS_naturalness' %}
         <p class="instruction">You are about to complete a MOS naturalness task. Please listen to the samples provided
             on the following pages and rate them on a scale from 1 to 5.</p>
@@ -67,6 +67,11 @@
             provided on the following pages and rate them on a scale from 1 to 5.</p>
         <p class="emphasis">Please focus solely on the delivery of correct contents, disregarding the quality (or
             naturalness) of the speech audio.</p>
+        {% elif task_type == 'MOS_similarity' %}
+        <p class="instruction">You are about to complete a MOS similarity task. Please listen to the samples provided
+            on the following pages and rate them on a scale from 1 to 5.</p>
+        <p class="emphasis">Please focus solely on the similarity of the speech audio to the reference audio during your
+            evaluation.</p>
         {% endif %}
 
         <button onclick="location.href='{{ url_for('score') }}'">Start Scoring</button>
