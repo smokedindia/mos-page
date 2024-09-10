@@ -299,7 +299,11 @@ def start():
                 "info",
             )
             return redirect(url_for("end"))
-
+        else:
+            # Existing user
+            # get score data from the database
+            session["page"] = len(user.scores) // (len(SAMPLE_DIRECTORIES) - 1) + 1
+            return redirect(url_for("score"))
         session["user_id"] = user.id
         session["page"] = 1
         session["task_type"] = user.task_type
