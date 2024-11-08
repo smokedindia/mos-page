@@ -21,8 +21,8 @@ import numpy as np
 
 # Add your admin credentials here
 ADMIN_USERNAME = "jhkim"
-ADMIN_PASSWORD = "aaai2025"
-PROJECT_NAME = "AAAI2025_VTS"
+ADMIN_PASSWORD = "cvpr2025"
+PROJECT_NAME = "CVPR2025_VTS"
 
 
 app = Flask(__name__)
