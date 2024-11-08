@@ -140,7 +140,7 @@ def start():
 
         if not user:
             # New user, create a new record
-            num_pages = 20
+            num_pages = 15
             selected_samples = random.sample(
                 samples, num_pages
             )  # Randomly select samples

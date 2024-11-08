@@ -132,7 +132,9 @@
     <div class="container">
         <div class="task-type">{{ task_type }}</div>
         <div class="page-number">Page {{ page }} of {{ total_pages }}</div>
+        {% if task_type == 'MOS_intelligibility' %}
         <div class="sample-description">{{ samples[0].files[0].text }}</div>
+        {% endif %}
 
         {% with messages = get_flashed_messages() %}
         {% if messages %}
