@@ -132,7 +132,7 @@
     <div class="container">
         <div class="task-type">{{ task_type }}</div>
         <div class="page-number">Page {{ page }} of {{ total_pages }}</div>
-        <div class="sample-description">{{ samples[0].files[0].text }}</div>
+        <!-- <div class="sample-description">{{ samples[0].files[0].text }}</div> -->
 
         {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -144,16 +144,24 @@
         {% endif %}
         {% endwith %}
 
+        <div class="sample-description">Original Video</div>
+        <div class="media-controls">
+            <video controls style="width: 50%;">
+                <source src="{{ url_for('static', filename=samples[0].original_filename) }}" type="video/mp4">
+                Your browser does not support the video element.
+            </video>
+        </div>
+        <div style="margin-bottom: 200px;"></div>
         <form method="POST">
             {% for file in samples[0].files %}
             <div class="sample-container">
                 <!-- <div class="sample-description">{{ file.model_name }}: {{ file.file_name }}</div> -->
 
                 <div class="media-controls">
-                    <audio controls style="width: 50%;">
-                        <source src="{{ url_for('static', filename=file.file_path) }}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
+                    <video controls style="width: 50%;">
+                        <source src="{{ url_for('static', filename=file.file_path) }}" type="video/mp4">
+                        Your browser does not support the video element.
+                    </video>
                 </div>
 
                 <div class="button-group">
