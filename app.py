@@ -68,7 +68,8 @@ for file_name in file_names:
                     # "text": text,
                 }
             )
-    original = files.pop(0)
+    original_idx = [i for i, f in enumerate(files) if f["model_name"] == "original"]
+    original = files.pop(original_idx[0])
     assert original["model_name"] == "original", files
     original_filename = SAMPLE_DIRECTORIES["original"].replace("static/", "") + "/" + file_name
     if files:
