@@ -69,7 +69,7 @@ for file_name in file_names:
                 }
             )
     original = files.pop(0)
-    assert original["model_name"] == "original"
+    assert original["model_name"] == "original", files
     original_filename = SAMPLE_DIRECTORIES["original"].replace("static/", "") + "/" + file_name
     if files:
         samples.append({"file_name": file_name, "files": files, 'original_filename': original_filename})
