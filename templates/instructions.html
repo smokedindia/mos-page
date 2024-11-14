@@ -58,9 +58,27 @@
         <h1>Instructions</h1>
 
         {% if task_type == 'MOS_naturalness' %}
-        <p class="instruction">You are about to complete a MOS naturalness task. Please listen to the samples provided
-            on the following pages and rate them on a scale from 1 to 5.</p>
-        <p class="emphasis">Please focus solely on the naturalness of the speech audio during your evaluation.</p>
+        <p class="instruction">
+            You will be given # video clips from a movie, each with one original clip and four translated versions.
+        </p>
+        <p class="instruction">
+            1. Watch the Original Clip First: Begin by watching the original movie clip to understand the context and cinematic
+            style.
+        </p>
+        <p class="instruction">
+            2. Evaluate the Translated Versions: After watching the original, view each of the four translated and remixed clips.
+            Please assess the following:
+        </p>
+        <p class="emphasis">
+            Naturalness of Translated Speech: Consider how realistic and fluent the translated speech sounds. 
+        </p>
+        <p class="emphasis">
+            Cinematic Enhancement: Reflect on how the audio and video remixing affects your overall cinematic experience.
+        </p>
+        
+        <p class="instruction">
+            Your scores should reflect both the quality of the translation and the enhancement from remixing.
+        </p>
 
         {% elif task_type == 'MOS_intelligibility' %}
         <p class="instruction">You are about to complete a MOS intelligibility task. Please listen to the samples
