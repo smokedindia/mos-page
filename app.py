@@ -24,12 +24,34 @@ import glob
 ADMIN_USERNAME = "jhkim"
 ADMIN_PASSWORD = "cvpr2025"
 PROJECT_NAME = "CVPR2025_AVSS"
+if not os.path.exists('static/samples/CVPR2025_AVSS'):
+    PROJECT_NAME = "CVPR2025_AVSS_2"
 
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{PROJECT_NAME}.db"
 db = SQLAlchemy(app)
+
+UPLOAD_FOLDER = os.path.join("static", "samples")
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+app.config["ALLOWED_EXTENSIONS"] = {
+    "mp4",
+    "mp3",
+    "wav",
+    "avi",
+}  # Add allowed extensions as needed
+
+# Ensure the upload folder exists
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+def allowed_file(filename):
+    return (
+        "." in filename
+        and filename.rsplit(".", 1)[1].lower() in app.config["ALLOWED_EXTENSIONS"]
+    )
+
 
 # Sample directory structure
 models = os.listdir(os.path.join("static", "samples", PROJECT_NAME))
@@ -410,6 +432,38 @@ def export_data(file_type):
 
     else:
         return "Invalid format. Please use 'csv' or 'json'."
+
+
+@app.route("/upload_files", methods=["GET", "POST"])
+@login_required  # Optional: Use if you want to restrict access
+def upload_files():
+    if request.method == "POST":
+        if "files[]" not in request.files:
+            flash("No files part in the request")
+            return redirect(request.url)
+        files = request.files.getlist("files[]")
+        file_paths = request.form.get("file_paths")
+        if not files or files[0].filename == "":
+            flash("No selected files")
+            return redirect(request.url)
+        if not file_paths:
+            flash("No file paths provided")
+            return redirect(request.url)
+        paths = json.loads(file_paths)
+        for i, file in enumerate(files):
+            if file and allowed_file(file.filename):
+                # Get the relative path and secure it
+                rel_path = paths[i]
+                # filename = secure_filename(rel_path)
+                filename = rel_path
+                # Create necessary directories
+                full_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                # Save the file
+                file.save(full_path)
+        flash("Files successfully uploaded")
+        return redirect(url_for("upload_files"))
+    return render_template("upload_files.html")
 
 
 if __name__ == "__main__":
