@@ -100,7 +100,7 @@ def start():
         name = None
         task_type = None
         user = None
-        render_template("start.html")
+        return render_template("start.html")
 
     # Sample directory structure
     models = os.listdir(os.path.join("static", "samples", PROJECT_NAME))
