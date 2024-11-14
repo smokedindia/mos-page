@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Files</title>
+</head>
+
+<body>
+    <h1>Upload Files</h1>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul class="flashes">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+    <form method="post" enctype="multipart/form-data">
+        <input type="file" id="file_input" name="files[]" multiple webkitdirectory directory mozdirectory>
+        <input type="hidden" name="file_paths" id="file_paths">
+        <input type="submit" value="Upload">
+    </form>
+    <script>
+        document.getElementById('file_input').addEventListener('change', function (event) {
+            const files = event.target.files;
+            const paths = [];
+            for (let i = 0; i < files.length; i++) {
+                paths.push(files[i].webkitRelativePath);
+            }
+            document.getElementById('file_paths').value = JSON.stringify(paths);
+        });
+    </script>
+</body>
+
+</html>
