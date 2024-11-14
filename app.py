@@ -182,11 +182,11 @@ def start():
         flash("You have already completed the survey.", "info")
         return redirect(url_for("end"))
 
-        session["user_id"] = user.id
-        session["page"] = 1
-        session["task_type"] = user.task_type
+    session["user_id"] = user.id
+    session["page"] = 1
+    session["task_type"] = user.task_type
 
-        return redirect(url_for("instructions"))
+    return redirect(url_for("instructions"))
 
     return render_template("start.html")
 
