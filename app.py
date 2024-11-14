@@ -158,29 +158,29 @@ def start():
                 }
             )
 
-        if not user:
-            # New user, create a new record
-            # num_pages = 20
-            # selected_samples = random.sample(
-            #     samples, num_pages
-            # )  # Randomly select samples
-            num_pages = len(samples)
-            selected_samples = samples
-            sample_sequence = json.dumps(
-                selected_samples
-            )  # Store the sequence as a JSON string
+    if not user:
+        # New user, create a new record
+        # num_pages = 20
+        # selected_samples = random.sample(
+        #     samples, num_pages
+        # )  # Randomly select samples
+        num_pages = len(samples)
+        selected_samples = samples
+        sample_sequence = json.dumps(
+            selected_samples
+        )  # Store the sequence as a JSON string
 
-            user = User(
-                name=name,
-                task_type=task_type,
-                num_pages=num_pages,
-                sample_sequence=sample_sequence,
-            )
-            db.session.add(user)
-            db.session.commit()
-        elif user.completed:
-            flash("You have already completed the survey.", "info")
-            return redirect(url_for("end"))
+        user = User(
+            name=name,
+            task_type=task_type,
+            num_pages=num_pages,
+            sample_sequence=sample_sequence,
+        )
+        db.session.add(user)
+        db.session.commit()
+    elif user.completed:
+        flash("You have already completed the survey.", "info")
+        return redirect(url_for("end"))
 
         session["user_id"] = user.id
         session["page"] = 1
