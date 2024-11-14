@@ -53,51 +53,6 @@ def allowed_file(filename):
     )
 
 
-# Sample directory structure
-models = os.listdir(os.path.join("static", "samples", PROJECT_NAME))
-SAMPLE_DIRECTORIES = {model: f"static/samples/{PROJECT_NAME}/{model}" for model in models}
-
-samples = []
-
-# Load sample filenames from one directory
-model_to_use_for_listing = "original"  # Choose one model directory to list the filenames
-model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
-file_names = [
-    file_name for file_name in os.listdir(model_path) if file_name.endswith(".mp4")
-]
-
-# Now gather files from all model directories for each filename
-for file_name in file_names:
-    files = []
-    for model_name, model_path in SAMPLE_DIRECTORIES.items():
-        file_path = os.path.join(model_path, file_name)
-        # text_path = os.path.join(
-        #     "static",
-        #     "samples",
-        #     PROJECT_NAME,
-        #     "0_text",
-        #     file_name.replace(".mp4", ".txt"),
-        # )
-        if os.path.exists(file_path):  # Ensure the file exists
-            # text = open(text_path).read() if os.path.exists(text_path) else ""
-            # lowercase the text
-            # text = text.lower()
-            files.append(
-                {
-                    "model_name": model_name,
-                    "file_name": file_name,
-                    "file_path": file_path.replace("static/", ""),
-                    # "text": text,
-                }
-            )
-    original_idx = [i for i, f in enumerate(files) if f["model_name"] == "original"]
-    original = files.pop(original_idx[0])
-    assert original["model_name"] == "original", files
-    original_filename = SAMPLE_DIRECTORIES["original"].replace("static/", "") + "/" + file_name
-    if files:
-        samples.append({"file_name": file_name, "files": files, 'original_filename': original_filename})
-
-
 # Database Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -163,6 +118,62 @@ def start():
         name = request.form["name"]
         task_type = request.form["task_type"]
         user = User.query.filter_by(name=name).first()
+
+    # Sample directory structure
+    models = os.listdir(os.path.join("static", "samples", PROJECT_NAME))
+    SAMPLE_DIRECTORIES = {
+        model: f"static/samples/{PROJECT_NAME}/{model}" for model in models
+    }
+
+    samples = []
+
+    # Load sample filenames from one directory
+    model_to_use_for_listing = (
+        "original"  # Choose one model directory to list the filenames
+    )
+    model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
+    file_names = [
+        file_name for file_name in os.listdir(model_path) if file_name.endswith(".mp4")
+    ]
+
+    # Now gather files from all model directories for each filename
+    for file_name in file_names:
+        files = []
+        for model_name, model_path in SAMPLE_DIRECTORIES.items():
+            file_path = os.path.join(model_path, file_name)
+            # text_path = os.path.join(
+            #     "static",
+            #     "samples",
+            #     PROJECT_NAME,
+            #     "0_text",
+            #     file_name.replace(".mp4", ".txt"),
+            # )
+            if os.path.exists(file_path):  # Ensure the file exists
+                # text = open(text_path).read() if os.path.exists(text_path) else ""
+                # lowercase the text
+                # text = text.lower()
+                files.append(
+                    {
+                        "model_name": model_name,
+                        "file_name": file_name,
+                        "file_path": file_path.replace("static/", ""),
+                        # "text": text,
+                    }
+                )
+        original_idx = [i for i, f in enumerate(files) if f["model_name"] == "original"]
+        original = files.pop(original_idx[0])
+        assert original["model_name"] == "original", files
+        original_filename = (
+            SAMPLE_DIRECTORIES["original"].replace("static/", "") + "/" + file_name
+        )
+        if files:
+            samples.append(
+                {
+                    "file_name": file_name,
+                    "files": files,
+                    "original_filename": original_filename,
+                }
+            )
 
         if not user:
             # New user, create a new record
