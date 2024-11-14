@@ -96,6 +96,10 @@ def start():
         name = request.form["name"]
         task_type = request.form["task_type"]
         user = User.query.filter_by(name=name).first()
+    else:
+        name = None
+        task_type = None
+        user = None
 
     # Sample directory structure
     models = os.listdir(os.path.join("static", "samples", PROJECT_NAME))
