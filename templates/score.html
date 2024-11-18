@@ -62,11 +62,37 @@
             font-weight: bold;
             margin-bottom: 10px;
         }
-
         .media-controls {
             margin-bottom: 10px;
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: center;
         }
 
+        .media-controls video {
+            width: 100%;
+            margin-right: 10px;
+        }
+
+        .video-container {
+            position: relative;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .video-container video:last-child {
+            margin-right: 0;
+        }
+        .video-label {
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
         .button-group {
             margin-top: 10px;
         }
@@ -153,15 +179,23 @@
         </div>
         <div style="margin-bottom: 200px;"></div>
         <form method="POST">
+            <!-- {% for path in samples[0].files[0].file_path %}
+            <div class="video-label">{{ path.split('_')[-1][:-4] }}</div>
+            {% endfor %} -->
             {% for file in samples[0].files %}
             <div class="sample-container">
                 <!-- <div class="sample-description">{{ file.model_name }}: {{ file.file_name }}</div> -->
 
                 <div class="media-controls">
-                    <video controls style="width: 50%;">
-                        <source src="{{ url_for('static', filename=file.file_path) }}" type="video/mp4">
-                        Your browser does not support the video element.
-                    </video>
+                    {% for path in file.file_path %}
+                    <div class="video-container">
+                        <div class="video-label">{{ path.split('_')[-1][:-4] }}</div>
+                        <video controls>
+                            <source src="{{ url_for('static', filename=path) }}" type="video/mp4">
+                            Your browser does not support the video element.
+                        </video>
+                    </div>
+                    {% endfor %}
                 </div>
 
                 <div class="button-group">

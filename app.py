@@ -104,6 +104,7 @@ def start():
 
     # Sample directory structure
     models = os.listdir(os.path.join("static", "samples", PROJECT_NAME))
+    models = [m for m in models if not m.startswith(".")]
     SAMPLE_DIRECTORIES = {
         model: f"static/samples/{PROJECT_NAME}/{model}" for model in models
     }
@@ -118,6 +119,7 @@ def start():
     file_names = [
         file_name for file_name in os.listdir(model_path) if file_name.endswith(".mp4")
     ]
+    variants = ['_music.mp4', '_sfx.mp4', '_speech.mp4']
 
     # Now gather files from all model directories for each filename
     for file_name in file_names:
@@ -131,6 +133,11 @@ def start():
             #     "0_text",
             #     file_name.replace(".mp4", ".txt"),
             # )
+            if model_name == 'original':
+                fp = file_path
+            else:
+                fp = [file_path.replace("static/", "").replace('.mp4', f"{variant}") for variant in variants]
+                file_path = file_path.replace('.mp4', '_music.mp4')
             if os.path.exists(file_path):  # Ensure the file exists
                 # text = open(text_path).read() if os.path.exists(text_path) else ""
                 # lowercase the text
@@ -139,7 +146,8 @@ def start():
                     {
                         "model_name": model_name,
                         "file_name": file_name,
-                        "file_path": file_path.replace("static/", ""),
+                        # "file_path": file_path.replace("static/", ""),
+                        "file_path": fp,
                         # "text": text,
                     }
                 )
