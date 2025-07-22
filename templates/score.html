@@ -169,7 +169,7 @@
             {# Display other files (non-groundtruth) with scoring #}
             {% for file in samples[0].files %}
                 {% if 'groundtruth' not in file.file_path %}
-                {{ file.file_path }}
+                <!-- {{ file.file_path }} -->
                 <div class="sample-container">
                     <!-- <div class="sample-description">{{ file.model_name }}: {{ file.file_name }}</div> -->
 
