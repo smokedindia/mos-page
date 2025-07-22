@@ -23,7 +23,7 @@ import numpy as np
 ADMIN_USERNAME = "jhkim"
 ADMIN_PASSWORD = "aaai2025"
 PROJECT_NAME = "42dot_final"
-NUM_PAGES = 1000
+NUM_PAGES = 500
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
