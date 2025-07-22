@@ -23,7 +23,7 @@ import numpy as np
 ADMIN_USERNAME = "jhkim"
 ADMIN_PASSWORD = "aaai2025"
 PROJECT_NAME = "42dot_final"
-NUM_PAGES = 500
+NUM_PAGES = 15
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -40,9 +40,32 @@ samples = []
 # Load sample filenames from one directory
 model_to_use_for_listing = "cosyvoice_heal_full_loss_libritts"  # Choose one model directory to list the filenames
 model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
-file_names = [
-    file_name for file_name in os.listdir(model_path) if file_name.endswith(".wav")
-]
+# file_names = [
+#     file_name for file_name in os.listdir(model_path) if file_name.endswith(".wav")
+# ]
+file_names_str = """
+1580_141084_000052_000000.wav
+1089_134686_000015_000004.wav
+4446_2275_000002_000009.wav
+5142_36600_000012_000003.wav
+3570_5694_000009_000004.wav
+1995_1836_000005_000001.wav
+3570_5696_000005_000002.wav
+1580_141084_000079_000002.wav
+4446_2273_000014_000004.wav
+7176_92135_000012_000000.wav
+237_134500_000011_000002.wav
+1995_1826_000029_000000.wav
+2830_3980_000018_000002.wav
+8463_287645_000014_000001.wav
+1089_134691_000025_000002.wav
+5142_36586_000009_000000.wav
+7127_75947_000069_000000.wav
+8455_210777_000022_000011.wav
+7729_102255_000024_000003.wav
+1995_1837_000024_000003.wav
+"""
+file_names = file_names_str.split('\n')
 
 # Now gather files from all model directories for each filename
 for file_name in file_names:
