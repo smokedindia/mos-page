@@ -38,7 +38,7 @@ SAMPLE_DIRECTORIES = {model: f"static/samples/{PROJECT_NAME}/{model}" for model 
 samples = []
 
 # Load sample filenames from one directory
-model_to_use_for_listing = "groundtruth"  # Choose one model directory to list the filenames
+model_to_use_for_listing = "cosyvoice_heal_full_loss_libritts"  # Choose one model directory to list the filenames
 model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
 file_names = [
     file_name for file_name in os.listdir(model_path) if file_name.endswith(".wav")
@@ -202,7 +202,7 @@ def score():
         for file in current_sample["files"]:
             score_key = f'score_{file["model_name"]}_{file["file_name"]}'
             score_value = request.form.get(score_key)
-            if score_value:
+            if score_value and "groundtruth" not in file["file_path"]:
                 # Save the score with model_name, file_name, and score
                 new_score = Score(
                     user_id=user_id,
@@ -214,8 +214,6 @@ def score():
                 db.session.commit()
                 scores[score_key] = int(score_value)  # Save the score in the dictionary
             else:
-                if "groundtruth" in file["file_path"]:
-                    continue
                 # Return early if the sample is missing a score
                 flash("Please score all samples before proceeding to the next page.")
                 return render_template(
