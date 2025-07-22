@@ -213,16 +213,6 @@ def score():
                 db.session.add(new_score)
                 db.session.commit()
                 scores[score_key] = int(score_value)  # Save the score in the dictionary
-            else:
-                # Return early if the sample is missing a score
-                flash("Please score all samples before proceeding to the next page.")
-                return render_template(
-                    "score.html",
-                    samples=[current_sample],  # Pass the current sample
-                    page=page,
-                    total_pages=user.num_pages,
-                    scores=scores,
-                )
 
         # Proceed to the next page
         session["page"] += 1
