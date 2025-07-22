@@ -94,27 +94,26 @@
     </style>
     <script>
         window.onload = function () {
-            const scores = {{ scores | tojson | safe
-        }};
-        for (const [key, value] of Object.entries(scores)) {
-            const button = document.querySelector(`button[name="${key}"][value="${value}"]`);
-            if (button) {
-                button.classList.add('active');
+            const scores = {{ scores | tojson | safe }};
+            for (const [key, value] of Object.entries(scores)) {
+                const button = document.querySelector(`button[name="${key}"][value="${value}"]`);
+                if (button) {
+                    button.classList.add('active');
+                }
             }
-        }
 
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function (event) {
-            const allRated = [...form.querySelectorAll('.sample-container')].every(container => {
-                const hiddenInput = container.querySelector('input[type="hidden"]');
-                return hiddenInput.value !== '';
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function (event) {
+                const allRated = [...form.querySelectorAll('.sample-container')].every(container => {
+                    const hiddenInput = container.querySelector('input[type="hidden"]');
+                    return hiddenInput.value !== '';
+                });
+
+                if (!allRated) {
+                    event.preventDefault();
+                    alert('Please score all samples before proceeding to the next page.');
+                }
             });
-
-            if (!allRated) {
-                event.preventDefault();
-                alert('Please score all samples before proceeding to the next page.');
-            }
-        });
         };
 
         function setActive(button) {
@@ -145,33 +144,52 @@
         {% endwith %}
 
         <form method="POST">
+            {# Display groundtruth file first as reference speech without scoring #}
             {% for file in samples[0].files %}
-            <div class="sample-container">
-                <!-- <div class="sample-description">{{ file.model_name }}: {{ file.file_name }}</div> -->
+                {% if 'groundtruth' in file.file_path %}
+                <div class="sample-container">
 
-                <div class="media-controls">
-                    <audio controls style="width: 50%;">
-                        <source src="{{ url_for('static', filename=file.file_path) }}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
+                    <div class="media-controls">
+                        <audio controls style="width: 50%;">
+                            <source src="{{ url_for('static', filename=file.file_path) }}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                    <div class="sample-description">Reference Speech</div>
                 </div>
+                {% endif %}
+            {% endfor %}
 
-                <div class="button-group">
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="1"
-                        class="score-button" onclick="setActive(this);">1</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="2"
-                        class="score-button" onclick="setActive(this);">2</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="3"
-                        class="score-button" onclick="setActive(this);">3</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="4"
-                        class="score-button" onclick="setActive(this);">4</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="5"
-                        class="score-button" onclick="setActive(this);">5</button>
+            {# Display other files (non-groundtruth) with scoring #}
+            {% for file in samples[0].files %}
+                {% if 'groundtruth' not in file.file_path %}
+                <div class="sample-container">
+                    <!-- <div class="sample-description">{{ file.model_name }}: {{ file.file_name }}</div> -->
+
+                    <div class="media-controls">
+                        <audio controls style="width: 50%;">
+                            <source src="{{ url_for('static', filename=file.file_path) }}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="1"
+                            class="score-button" onclick="setActive(this);">1</button>
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="2"
+                            class="score-button" onclick="setActive(this);">2</button>
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="3"
+                            class="score-button" onclick="setActive(this);">3</button>
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="4"
+                            class="score-button" onclick="setActive(this);">4</button>
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="5"
+                            class="score-button" onclick="setActive(this);">5</button>
+                    </div>
+                    <input type="hidden" id="score_{{ file.model_name }}_{{ file.file_name }}"
+                        name="score_{{ file.model_name }}_{{ file.file_name }}"
+                        value="{{ scores.get('score_' ~ file.model_name ~ '_' ~ file.file_name, '') }}">
                 </div>
-                <input type="hidden" id="score_{{ file.model_name }}_{{ file.file_name }}"
-                    name="score_{{ file.model_name }}_{{ file.file_name }}"
-                    value="{{ scores.get('score_' ~ file.model_name ~ '_' ~ file.file_name, '') }}">
-            </div>
+                {% endif %}
             {% endfor %}
 
             <div class="button-group">
