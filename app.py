@@ -23,7 +23,7 @@ import numpy as np
 ADMIN_USERNAME = "jhkim"
 ADMIN_PASSWORD = "aaai2025"
 PROJECT_NAME = "42dot_final"
-
+NUM_PAGES = 1000
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
@@ -140,9 +140,8 @@ def start():
 
         if not user:
             # New user, create a new record
-            num_pages = 20
             selected_samples = random.sample(
-                samples, num_pages
+                samples, NUM_PAGES
             )  # Randomly select samples
             sample_sequence = json.dumps(
                 selected_samples
@@ -151,7 +150,7 @@ def start():
             user = User(
                 name=name,
                 task_type=task_type,
-                num_pages=num_pages,
+                num_pages=NUM_PAGES,
                 sample_sequence=sample_sequence,
             )
             db.session.add(user)
@@ -215,6 +214,8 @@ def score():
                 db.session.commit()
                 scores[score_key] = int(score_value)  # Save the score in the dictionary
             else:
+                if "groundtruth" in file["file_path"]:
+                    continue
                 # Return early if the sample is missing a score
                 flash("Please score all samples before proceeding to the next page.")
                 return render_template(

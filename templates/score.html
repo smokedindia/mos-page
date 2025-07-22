@@ -105,6 +105,12 @@
             const form = document.querySelector('form');
             form.addEventListener('submit', function (event) {
                 const allRated = [...form.querySelectorAll('.sample-container')].every(container => {
+                    // Skip containers that don't have score buttons (groundtruth files)
+                    const scoreButtons = container.querySelectorAll('.score-button');
+                    if (scoreButtons.length === 0) {
+                        return true; // Groundtruth files don't need scoring
+                    }
+                    
                     const hiddenInput = container.querySelector('input[type="hidden"]');
                     return hiddenInput.value !== '';
                 });
