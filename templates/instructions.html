@@ -57,13 +57,13 @@
     <div class="container">
         <h1>Instructions</h1>
 
-        {% if task_type == 'MOS_naturalness' %}
-        <p class="instruction">You are about to complete a MOS naturalness task. Please listen to the samples provided
+        {% if task_type == 'Audio Quality' %}
+        <p class="instruction">You are about to complete an Audio Quality task. Please listen to the samples provided
             on the following pages and rate them on a scale from 1 to 5.</p>
         <p class="emphasis">Please focus solely on the naturalness of the speech audio during your evaluation.</p>
 
-        {% elif task_type == 'MOS_intelligibility' %}
-        <p class="instruction">You are about to complete a MOS intelligibility task. Please listen to the samples
+        {% elif task_type == 'Text Alignment' %}
+        <p class="instruction">You are about to complete a Text Alignment task. Please listen to the samples
             provided on the following pages and rate them on a scale from 1 to 5.</p>
         <p class="emphasis">Please focus solely on the delivery of correct contents, disregarding the quality (or
             naturalness) of the speech audio.</p>
