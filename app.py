@@ -22,7 +22,7 @@ import numpy as np
 # Add your admin credentials here
 ADMIN_USERNAME = "jhkim"
 ADMIN_PASSWORD = "aaai2025"
-PROJECT_NAME = "AAAI2025_VTS"
+PROJECT_NAME = "2026_icassp_its"
 
 
 app = Flask(__name__)
@@ -32,13 +32,13 @@ db = SQLAlchemy(app)
 
 # Sample directory structure
 models = os.listdir(os.path.join("static", "samples", PROJECT_NAME))
-models.remove("0_text")  # Remove '0_text' directory if it exists
+models.remove("captions")  # Remove '0_text' directory if it exists
 SAMPLE_DIRECTORIES = {model: f"static/samples/{PROJECT_NAME}/{model}" for model in models}
 
 samples = []
 
 # Load sample filenames from one directory
-model_to_use_for_listing = "gt"  # Choose one model directory to list the filenames
+model_to_use_for_listing = "GT"  # Choose one model directory to list the filenames
 model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
 file_names = [
     file_name for file_name in os.listdir(model_path) if file_name.endswith(".wav")
@@ -53,7 +53,7 @@ for file_name in file_names:
             "static",
             "samples",
             PROJECT_NAME,
-            "0_text",
+            "captions",
             file_name.replace(".wav", ".txt"),
         )
         if os.path.exists(file_path):  # Ensure the file exists
