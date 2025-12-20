@@ -39,10 +39,21 @@ samples = []
 
 # Load sample filenames from one directory
 model_to_use_for_listing = "GT"  # Choose one model directory to list the filenames
+exclude_list = [
+    '00253',
+    '00062',
+    '00547',
+    '00636',
+    '00447',
+    '00473',
+    '00210',
+    '00568'
+]
 model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
 file_names = [
     file_name for file_name in os.listdir(model_path) if file_name.endswith(".wav")
 ]
+file_names = [fn for fn in file_names if fn.replace(".wav", "") not in exclude_list]
 
 # Now gather files from all model directories for each filename
 for file_name in file_names:
