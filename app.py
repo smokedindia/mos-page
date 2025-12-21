@@ -30,57 +30,6 @@ app.secret_key = "your_secret_key"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{PROJECT_NAME}.db"
 db = SQLAlchemy(app)
 
-# Sample directory structure
-models = os.listdir(os.path.join("static", "samples", PROJECT_NAME))
-models.remove("captions")  # Remove '0_text' directory if it exists
-SAMPLE_DIRECTORIES = {model: f"static/samples/{PROJECT_NAME}/{model}" for model in models}
-
-samples = []
-
-# Load sample filenames from one directory
-model_to_use_for_listing = "GT"  # Choose one model directory to list the filenames
-exclude_list = [
-    '00253',
-    '00062',
-    '00547',
-    '00636',
-    '00447',
-    '00473',
-    '00210',
-    '00568'
-]
-model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
-file_names = [
-    file_name for file_name in os.listdir(model_path) if file_name.endswith(".wav")
-]
-file_names = [fn for fn in file_names if fn.replace(".wav", "") not in exclude_list]
-
-# Now gather files from all model directories for each filename
-for file_name in file_names:
-    files = []
-    for model_name, model_path in SAMPLE_DIRECTORIES.items():
-        file_path = os.path.join(model_path, file_name)
-        text_path = os.path.join(
-            "static",
-            "samples",
-            PROJECT_NAME,
-            "captions",
-            file_name.replace(".wav", ".txt"),
-        )
-        if os.path.exists(file_path):  # Ensure the file exists
-            text = open(text_path).read() if os.path.exists(text_path) else ""
-            # lowercase the text
-            text = text.lower()
-            files.append(
-                {
-                    "model_name": model_name,
-                    "file_name": file_name,
-                    "file_path": file_path.replace("static/", ""),
-                    "text": text,
-                }
-            )
-    if files:
-        samples.append({"file_name": file_name, "files": files})
 
 
 # Database Models
@@ -144,14 +93,68 @@ def reset_db():
 
 @app.route("/", methods=["GET", "POST"])
 def start():
+
     if request.method == "POST":
         name = request.form["name"]
         task_type = request.form["task_type"]
         user = User.query.filter_by(name=name).first()
 
         if not user:
+            # Sample directory structure
+            models = os.listdir(os.path.join("static", "samples", PROJECT_NAME))
+            models.remove("captions")  # Remove '0_text' directory if it exists
+            SAMPLE_DIRECTORIES = {model: f"static/samples/{PROJECT_NAME}/{model}" for model in models}
+
+            samples = []
+
+            # Load sample filenames from one directory
+            model_to_use_for_listing = "GT"  # Choose one model directory to list the filenames
+            model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
+            file_names = [
+                file_name for file_name in os.listdir(model_path) if file_name.endswith(".wav")
+            ]
+            if task_type == 'Text Alignment':
+                exclude_list = [
+                    '00253',
+                    '00062',
+                    '00547',
+                    '00636',
+                    '00447',
+                    '00473',
+                    '00210',
+                    '00568'
+                ]
+                file_names = [fn for fn in file_names if fn.replace(".wav", "") not in exclude_list]
+
+            # Now gather files from all model directories for each filename
+            for file_name in file_names:
+                files = []
+                for model_name, model_path in SAMPLE_DIRECTORIES.items():
+                    file_path = os.path.join(model_path, file_name)
+                    text_path = os.path.join(
+                        "static",
+                        "samples",
+                        PROJECT_NAME,
+                        "captions",
+                        file_name.replace(".wav", ".txt"),
+                    )
+                    if os.path.exists(file_path):  # Ensure the file exists
+                        text = open(text_path).read() if os.path.exists(text_path) else ""
+                        # lowercase the text
+                        text = text.lower()
+                        files.append(
+                            {
+                                "model_name": model_name,
+                                "file_name": file_name,
+                                "file_path": file_path.replace("static/", ""),
+                                "text": text,
+                            }
+                        )
+                if files:
+                    samples.append({"file_name": file_name, "files": files})
             # New user, create a new record
             num_pages = 10
+            print(f"Total samples available: {len(samples)}")
             selected_samples = random.sample(
                 samples, num_pages
             )  # Randomly select samples
