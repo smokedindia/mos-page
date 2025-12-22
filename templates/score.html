@@ -17,7 +17,7 @@
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             background-color: white;
             padding: 20px;
@@ -39,28 +39,103 @@
             color: #333;
         }
 
+        .comparison-section {
+            margin-top: 30px;
+        }
+
+        .comparison-instruction {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .comparison-pair {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+
+        .reference-box {
+            flex: 1;
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #4a90e2;
+        }
+
+        .comparison-box {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .box-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c5aa0;
+        }
+
+        .sample-number {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
         .score-button {
-            padding: 10px;
-            margin: 5px;
-            background-color: lightgray;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            padding: 8px 12px;
+            background-color: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
             cursor: pointer;
-            display: inline-block;
+            font-size: 13px;
+            color: #555;
+            transition: all 0.2s ease;
+        }
+
+        .score-button:hover {
+            background-color: #e8e9ea;
+            border-color: #c0c0c0;
         }
 
         .score-button.active {
-            background-color: darkgray;
-            color: white;
+            background-color: #d4e7f7;
+            color: #2c5aa0;
+            border-color: #4a90e2;
+            font-weight: 500;
         }
 
-        .sample-container {
-            margin-bottom: 30px;
+
+
+        .prompt-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #4a90e2;
         }
 
-        .sample-description {
-            font-weight: bold;
-            margin-bottom: 10px;
+        .prompt-label {
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .prompt-text {
+            font-size: 1.1em;
+            font-weight: 500;
+            color: #333;
+            line-height: 1.5;
         }
 
         .media-controls {
@@ -69,6 +144,10 @@
 
         .button-group {
             margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 3px;
         }
 
         .error-message {
@@ -79,7 +158,7 @@
         .next-button {
             padding: 15px 30px;
             margin-top: 20px;
-            background-color: darkgray;
+            background-color: #4a90e2;
             color: white;
             border: none;
             border-radius: 8px;
@@ -89,7 +168,39 @@
         }
 
         .next-button:hover {
-            background-color: gray;
+            background-color: #357abd;
+        }
+
+        .rating-label {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* Rating legend at top */
+        .legend-label {
+            text-align: center;
+            font-size: 0.95em;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .scale-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 10px 0 20px;
+        }
+
+        .scale-item {
+            background-color: #f0f2f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 6px 10px;
+            font-size: 13px;
+            color: #555;
         }
     </style>
     <script>
@@ -105,14 +216,14 @@
 
         const form = document.querySelector('form');
         form.addEventListener('submit', function (event) {
-            const allRated = [...form.querySelectorAll('.sample-container')].every(container => {
-                const hiddenInput = container.querySelector('input[type="hidden"]');
-                return hiddenInput.value !== '';
+            const allRated = [...form.querySelectorAll('.comparison-pair')].every(pair => {
+                const hiddenInput = pair.querySelector('input[type="hidden"]');
+                return hiddenInput && hiddenInput.value !== '';
             });
 
             if (!allRated) {
                 event.preventDefault();
-                alert('Please score all samples before proceeding to the next page.');
+                alert('Please rate all samples in comparison to the reference before proceeding.');
             }
         });
         };
@@ -132,7 +243,11 @@
     <div class="container">
         <div class="task-type">{{ task_type }}</div>
         <div class="page-number">Page {{ page }} of {{ total_pages }}</div>
-        <div class="sample-description">{{ samples[0].files[0].text }}</div>
+
+        <div class="prompt-section">
+            <div class="prompt-label">📝 Text Prompt</div>
+            <div class="prompt-text">{{ samples[0].files[0].text }}</div>
+        </div>
 
         {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -144,40 +259,76 @@
         {% endif %}
         {% endwith %}
 
-        <form method="POST">
-            {% for file in samples[0].files %}
-            <div class="sample-container">
-                <!-- <div class="sample-description">{{ file.model_name }}: {{ file.file_name }}</div> -->
+        <!-- Comparison Samples -->
+        <div class="comparison-section">
+            <div class="comparison-instruction">
+                Compare each sample on the right to the reference sample on the left:
+            </div>
 
-                <div class="media-controls">
-                    <audio controls style="width: 50%;">
-                        <source src="{{ url_for('static', filename=file.file_path) }}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
+            <div class="legend-label">Rating Scale</div>
+            <div class="scale-legend">
+                <div class="scale-item">-3: Much Worse</div>
+                <div class="scale-item">-2: Worse</div>
+                <div class="scale-item">-1: Slightly Worse</div>
+                <div class="scale-item">0: Similar</div>
+                <div class="scale-item">1: Slightly Better</div>
+                <div class="scale-item">2: Better</div>
+                <div class="scale-item">3: Much Better</div>
+            </div>
+
+            <form method="POST">
+                {% for file in comparison_samples %}
+                <div class="comparison-pair">
+                    <!-- Reference Sample (SCORE) -->
+                    <div class="comparison-box">
+                        <div class="sample-number">Reference</div>
+                        <div class="media-controls">
+                            <audio controls style="width: 100%;">
+                                <source src="{{ url_for('static', filename=reference_sample.file_path) }}"
+                                    type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="-3" class="score-button"
+                            onclick="setActive(this);" title="Much Worse">-3</button>
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="-2" class="score-button"
+                            onclick="setActive(this);" title="Worse">-2</button>
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="-1" class="score-button"
+                            onclick="setActive(this);" title="Slightly Worse">-1</button>
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="0" class="score-button"
+                            onclick="setActive(this);" title="Similar">0</button>
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="1" class="score-button"
+                            onclick="setActive(this);" title="Slightly Better">1</button>
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="2" class="score-button"
+                            onclick="setActive(this);" title="Better">2</button>
+                        <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="3" class="score-button"
+                            onclick="setActive(this);" title="Much Better">3</button>
+                    </div>
+                    <input type="hidden" id="score_{{ file.model_name }}_{{ file.file_name }}"
+                        name="score_{{ file.model_name }}_{{ file.file_name }}"
+                        value="{{ scores.get('score_' ~ file.model_name ~ '_' ~ file.file_name, '') }}">
+                    <!-- Comparison Sample -->
+                    <div class="comparison-box">
+                        <div class="sample-number">Sample {{ loop.index }}</div>
+                        <div class="media-controls">
+                            <audio controls style="width: 100%;">
+                                <source src="{{ url_for('static', filename=file.file_path) }}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+
+
+                    </div>
                 </div>
+                {% endfor %}
 
                 <div class="button-group">
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="1"
-                        class="score-button" onclick="setActive(this);">1</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="2"
-                        class="score-button" onclick="setActive(this);">2</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="3"
-                        class="score-button" onclick="setActive(this);">3</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="4"
-                        class="score-button" onclick="setActive(this);">4</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="5"
-                        class="score-button" onclick="setActive(this);">5</button>
+                    <button type="submit" class="next-button">Next Page</button>
                 </div>
-                <input type="hidden" id="score_{{ file.model_name }}_{{ file.file_name }}"
-                    name="score_{{ file.model_name }}_{{ file.file_name }}"
-                    value="{{ scores.get('score_' ~ file.model_name ~ '_' ~ file.file_name, '') }}">
-            </div>
-            {% endfor %}
-
-            <div class="button-group">
-                <button type="submit" class="next-button">Next Page</button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </body>
 

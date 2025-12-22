@@ -209,12 +209,25 @@ def score():
         return redirect(url_for("end"))
 
     current_sample = sample_sequence[page - 1]  # Get the current sample for this page
-    # shuffle the order of the models
-    random.shuffle(current_sample["files"])
+    
+    # Separate SCORE model as reference and other samples for comparison
+    reference_sample = None
+    comparison_samples = []
+    
+    for file in current_sample["files"]:
+        if file["model_name"] == "SCORE":
+            reference_sample = file
+        else:
+            comparison_samples.append(file)
+    
+    # Shuffle the order of comparison samples
+    random.shuffle(comparison_samples)
+    
     scores = {}
 
     if request.method == "POST":
-        for file in current_sample["files"]:
+        # Only save scores for comparison samples, not for SCORE reference
+        for file in comparison_samples:
             score_key = f'score_{file["model_name"]}_{file["file_name"]}'
             score_value = request.form.get(score_key)
             if score_value:
@@ -230,13 +243,16 @@ def score():
                 scores[score_key] = int(score_value)  # Save the score in the dictionary
             else:
                 # Return early if the sample is missing a score
-                flash("Please score all samples before proceeding to the next page.")
+                flash("Please rate all samples in comparison to the reference before proceeding.")
                 return render_template(
                     "score.html",
                     samples=[current_sample],  # Pass the current sample
+                    reference_sample=reference_sample,
+                    comparison_samples=comparison_samples,
                     page=page,
                     total_pages=user.num_pages,
                     scores=scores,
+                    task_type=user.task_type,
                 )
 
         # Proceed to the next page
@@ -247,6 +263,8 @@ def score():
     return render_template(
         "score.html",
         samples=[current_sample],  # Pass the current sample
+        reference_sample=reference_sample,
+        comparison_samples=comparison_samples,
         page=page,
         total_pages=user.num_pages,
         scores=scores,  # Pass the scores dictionary
