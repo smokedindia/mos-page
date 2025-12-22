@@ -115,14 +115,12 @@ def start():
             ]
             if task_type == 'Text Alignment':
                 exclude_list = [
-                    '00253',
-                    '00062',
-                    '00547',
-                    '00636',
-                    '00447',
-                    '00473',
-                    '00210',
-                    '00568'
+                    '00547', #
+                    '00447', #
+                    '00210', #
+                    '00568', #
+                    '00115', #
+                    '00298', #
                 ]
                 file_names = [fn for fn in file_names if fn.replace(".wav", "") not in exclude_list]
 
