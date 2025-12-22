@@ -217,7 +217,8 @@ def score():
     for file in current_sample["files"]:
         if file["model_name"] == "SCORE":
             reference_sample = file
-        else:
+        elif file["model_name"] != "GT":
+            # Exclude GT from comparison scoring
             comparison_samples.append(file)
     
     # Shuffle the order of comparison samples
