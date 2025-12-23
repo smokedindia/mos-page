@@ -107,22 +107,61 @@ def start():
 
             samples = []
 
-            # Load sample filenames from one directory
-            model_to_use_for_listing = "GT"  # Choose one model directory to list the filenames
-            model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
-            file_names = [
-                file_name for file_name in os.listdir(model_path) if file_name.endswith(".wav")
+            # # Load sample filenames from one directory
+            # model_to_use_for_listing = "GT"  # Choose one model directory to list the filenames
+            # model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
+            # file_names = [
+            #     file_name for file_name in os.listdir(model_path) if file_name.endswith(".wav")
+            # ]
+            base_list = [
+                37,
+                42,
+                62,
+                111,
+                254,
+                317,
+                344,
+                374,
+                382,
+                473,
+                529,
+                636,
+                654,
+                737,
             ]
+            num_pages = 10
             if task_type == 'Text Alignment':
-                exclude_list = [
-                    '00547', #
-                    '00447', #
-                    '00210', #
-                    '00568', #
-                    '00115', #
-                    '00298', #
+                # exclude_list = [
+                #     '00547', #
+                #     '00447', #
+                #     '00210', #
+                #     '00568', #
+                #     '00115', #
+                #     '00298', #
+                # ]
+                # file_names = [fn for fn in file_names if fn.replace(".wav", "") not in exclude_list]
+                file_list = [
+                    414,
+                    417,
+                    433,
+                    437, # must
+                    439, # must
+                    444, # must
                 ]
-                file_names = [fn for fn in file_names if fn.replace(".wav", "") not in exclude_list]
+                file_ids = [437, 439, 444]
+                print(f'selected file ids so far: {file_ids}, need to select {num_pages - len(file_ids)} more')
+                file_ids.extend(random.sample([fid for fid in base_list if fid not in file_ids], num_pages - len(file_ids)))
+            else:  # Audio Quality
+                # file_names = [fn for fn in file_names if fn.replace(".wav", "") in include_list]
+                file_list = [
+                    498,
+                ]
+                file_ids = [498]
+                print(f'selected file ids so far: {file_ids}, need to select {num_pages - len(file_ids)} more')
+                file_ids.extend(random.sample([fid for fid in base_list if fid not in file_ids], num_pages - len(file_ids)))
+            assert len(file_ids) == num_pages, f"Number of selected files {len(file_ids)} does not match num_pages {num_pages}"
+            file_names = [f"{fid:05}.wav" for fid in file_ids]
+            print(f"Final selected file ids: {file_ids}")
 
             # Now gather files from all model directories for each filename
             for file_name in file_names:
@@ -151,11 +190,11 @@ def start():
                 if files:
                     samples.append({"file_name": file_name, "files": files})
             # New user, create a new record
-            num_pages = 10
             print(f"Total samples available: {len(samples)}")
-            selected_samples = random.sample(
-                samples, num_pages
-            )  # Randomly select samples
+            # selected_samples = random.sample(
+            #     samples, num_pages
+            # )  # Randomly select samples
+            selected_samples = samples
             sample_sequence = json.dumps(
                 selected_samples
             )  # Store the sequence as a JSON string
