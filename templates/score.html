@@ -14,72 +14,139 @@
             margin: 0;
             font-family: Arial, sans-serif;
             background-color: #f4f4f4;
+            padding: 20px;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             width: 100%;
             background-color: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
         }
 
         .task-type {
             font-size: 2em;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             color: #333;
+            text-align: center;
         }
 
         .page-number {
             font-size: 1.2em;
             margin-bottom: 20px;
             color: #333;
+            text-align: center;
         }
 
-        .score-button {
-            padding: 10px;
-            margin: 5px;
-            background-color: lightgray;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            cursor: pointer;
-            display: inline-block;
-        }
-
-        .score-button.active {
-            background-color: darkgray;
-            color: white;
-        }
-
-        .sample-container {
+        .prompt-container {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
             margin-bottom: 30px;
+            border-radius: 4px;
         }
 
-        .sample-description {
+        .prompt-label {
+            font-weight: bold;
+            color: #1976D2;
+            margin-bottom: 5px;
+        }
+
+        .prompt-text {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .video-comparison {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .video-panel {
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .video-label {
+            text-align: center;
+            font-size: 1.5em;
             font-weight: bold;
             margin-bottom: 10px;
+            color: #555;
         }
 
-        .media-controls {
-            margin-bottom: 10px;
+        video {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            background-color: #000;
         }
 
-        .button-group {
-            margin-top: 10px;
+        .scoring-section {
+            margin-top: 40px;
+        }
+
+        .criterion-row {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .criterion-row:last-child {
+            border-bottom: none;
+        }
+
+        .criterion-label {
+            flex: 0 0 220px;
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+        }
+
+        .criterion-options {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            font-size: 1.1em;
+            cursor: pointer;
+            user-select: none;
         }
 
         .error-message {
             color: red;
             margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
         }
 
         .next-button {
-            padding: 15px 30px;
-            margin-top: 20px;
-            background-color: darkgray;
+            display: block;
+            margin: 30px auto 0;
+            padding: 15px 40px;
+            background-color: #2196F3;
             color: white;
             border: none;
             border-radius: 8px;
@@ -89,42 +156,56 @@
         }
 
         .next-button:hover {
-            background-color: gray;
+            background-color: #1976D2;
+        }
+
+        .next-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 900px) {
+            .video-comparison {
+                flex-direction: column;
+            }
+
+            .criterion-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .criterion-label {
+                flex: none;
+            }
+
+            .criterion-options {
+                width: 100%;
+                justify-content: flex-start;
+                gap: 20px;
+            }
         }
     </style>
     <script>
-        window.onload = function () {
-            const scores = {{ scores | tojson | safe
-        }};
-        for (const [key, value] of Object.entries(scores)) {
-            const button = document.querySelector(`button[name="${key}"][value="${value}"]`);
-            if (button) {
-                button.classList.add('active');
-            }
+        function updateButtonState() {
+            const textConsistency = document.querySelector('input[name="text_consistency"]:checked');
+            const audioVideoAlignment = document.querySelector('input[name="audio_video_alignment"]:checked');
+            const overallQuality = document.querySelector('input[name="overall_quality"]:checked');
+
+            const submitButton = document.getElementById('submitButton');
+            submitButton.disabled = !(textConsistency && audioVideoAlignment && overallQuality);
         }
 
-        const form = document.querySelector('form');
-        form.addEventListener('submit', function (event) {
-            const allRated = [...form.querySelectorAll('.sample-container')].every(container => {
-                const hiddenInput = container.querySelector('input[type="hidden"]');
-                return hiddenInput.value !== '';
+        window.onload = function () {
+            // Add event listeners to all radio buttons
+            const radios = document.querySelectorAll('input[type="radio"]');
+            radios.forEach(radio => {
+                radio.addEventListener('change', updateButtonState);
             });
 
-            if (!allRated) {
-                event.preventDefault();
-                alert('Please score all samples before proceeding to the next page.');
-            }
-        });
+            // Initial button state check
+            updateButtonState();
         };
-
-        function setActive(button) {
-            const buttonGroup = button.parentElement;
-            const buttons = buttonGroup.querySelectorAll('.score-button');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            const hiddenInput = buttonGroup.nextElementSibling;
-            hiddenInput.value = button.value;
-        }
     </script>
 </head>
 
@@ -132,7 +213,11 @@
     <div class="container">
         <div class="task-type">{{ task_type }}</div>
         <div class="page-number">Page {{ page }} of {{ total_pages }}</div>
-        <div class="sample-description">{{ samples[0].files[0].text }}</div>
+
+        <div class="prompt-container">
+            <div class="prompt-label">Prompt:</div>
+            <div class="prompt-text">{{ sample.prompt }}</div>
+        </div>
 
         {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -144,39 +229,86 @@
         {% endif %}
         {% endwith %}
 
+        <div class="video-comparison">
+            <!-- <p><strong>{{ sample.left.model_name }}</strong></p> -->
+            <div class="video-panel">
+                <video controls>
+                    <source src="{{ url_for('static', filename=sample.left.file_path) }}" type="video/mp4">
+                    Your browser does not support the video element.
+                </video>
+            </div>
+
+            <!-- <p><strong>{{ sample.right.model_name }}</strong></p> -->
+            <div class="video-panel">
+                <video controls>
+                    <source src="{{ url_for('static', filename=sample.right.file_path) }}" type="video/mp4">
+                    Your browser does not support the video element.
+                </video>
+            </div>
+        </div>
+
         <form method="POST">
-            {% for file in samples[0].files %}
-            <div class="sample-container">
-                <!-- <div class="sample-description">{{ file.model_name }}: {{ file.file_name }}</div> -->
+            <!-- Hidden fields to preserve which model is on which side -->
+            <input type="hidden" name="left_model" value="{{ sample.left.model_name }}">
+            <input type="hidden" name="right_model" value="{{ sample.right.model_name }}">
 
-                <div class="media-controls">
-                    <audio controls style="width: 50%;">
-                        <source src="{{ url_for('static', filename=file.file_path) }}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
+            <div class="scoring-section">
+                <div class="criterion-row">
+                    <div class="criterion-label">Text-Consistency</div>
+                    <div class="criterion-options">
+                        <div class="radio-option">
+                            <input type="radio" id="tc_left" name="text_consistency" value="left_win">
+                            <label for="tc_left">Left better</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="tc_tie" name="text_consistency" value="tie">
+                            <label for="tc_tie">Tie</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="tc_right" name="text_consistency" value="right_win">
+                            <label for="tc_right">Right better</label>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="button-group">
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="1"
-                        class="score-button" onclick="setActive(this);">1</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="2"
-                        class="score-button" onclick="setActive(this);">2</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="3"
-                        class="score-button" onclick="setActive(this);">3</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="4"
-                        class="score-button" onclick="setActive(this);">4</button>
-                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="5"
-                        class="score-button" onclick="setActive(this);">5</button>
+                <div class="criterion-row">
+                    <div class="criterion-label">Audio-Video Alignment</div>
+                    <div class="criterion-options">
+                        <div class="radio-option">
+                            <input type="radio" id="ava_left" name="audio_video_alignment" value="left_win">
+                            <label for="ava_left">Left better</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="ava_tie" name="audio_video_alignment" value="tie">
+                            <label for="ava_tie">Tie</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="ava_right" name="audio_video_alignment" value="right_win">
+                            <label for="ava_right">Right better</label>
+                        </div>
+                    </div>
                 </div>
-                <input type="hidden" id="score_{{ file.model_name }}_{{ file.file_name }}"
-                    name="score_{{ file.model_name }}_{{ file.file_name }}"
-                    value="{{ scores.get('score_' ~ file.model_name ~ '_' ~ file.file_name, '') }}">
-            </div>
-            {% endfor %}
 
-            <div class="button-group">
-                <button type="submit" class="next-button">Next Page</button>
+                <div class="criterion-row">
+                    <div class="criterion-label">Overall Quality</div>
+                    <div class="criterion-options">
+                        <div class="radio-option">
+                            <input type="radio" id="oq_left" name="overall_quality" value="left_win">
+                            <label for="oq_left">Left better</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="oq_tie" name="overall_quality" value="tie">
+                            <label for="oq_tie">Tie</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="oq_right" name="overall_quality" value="right_win">
+                            <label for="oq_right">Right better</label>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <button type="submit" id="submitButton" class="next-button" disabled>Next Page</button>
         </form>
     </div>
 </body>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Score Samples - Page {{ page }}</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .task-type {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .page-number {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .score-button {
+            padding: 10px;
+            margin: 5px;
+            background-color: lightgray;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .score-button.active {
+            background-color: darkgray;
+            color: white;
+        }
+
+        .sample-container {
+            margin-bottom: 30px;
+        }
+
+        .sample-description {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .media-controls {
+            margin-bottom: 10px;
+        }
+
+        .button-group {
+            margin-top: 10px;
+        }
+
+        .error-message {
+            color: red;
+            margin-bottom: 20px;
+        }
+
+        .next-button {
+            padding: 15px 30px;
+            margin-top: 20px;
+            background-color: darkgray;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .next-button:hover {
+            background-color: gray;
+        }
+    </style>
+    <script>
+        window.onload = function () {
+            const scores = {{ scores | tojson | safe
+        }};
+        for (const [key, value] of Object.entries(scores)) {
+            const button = document.querySelector(`button[name="${key}"][value="${value}"]`);
+            if (button) {
+                button.classList.add('active');
+            }
+        }
+
+        const form = document.querySelector('form');
+        form.addEventListener('submit', function (event) {
+            const allRated = [...form.querySelectorAll('.sample-container')].every(container => {
+                const hiddenInput = container.querySelector('input[type="hidden"]');
+                return hiddenInput.value !== '';
+            });
+
+            if (!allRated) {
+                event.preventDefault();
+                alert('Please score all samples before proceeding to the next page.');
+            }
+        });
+        };
+
+        function setActive(button) {
+            const buttonGroup = button.parentElement;
+            const buttons = buttonGroup.querySelectorAll('.score-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            const hiddenInput = buttonGroup.nextElementSibling;
+            hiddenInput.value = button.value;
+        }
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="task-type">{{ task_type }}</div>
+        <div class="page-number">Page {{ page }} of {{ total_pages }}</div>
+        <div class="sample-description">{{ samples[0].files[0].text }}</div>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="error-message">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            {% for file in samples[0].files %}
+            <div class="sample-container">
+                <!-- <div class="sample-description">{{ file.model_name }}: {{ file.file_name }}</div> -->
+
+                <div class="media-controls">
+                    <audio controls style="width: 50%;">
+                        <source src="{{ url_for('static', filename=file.file_path) }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="1"
+                        class="score-button" onclick="setActive(this);">1</button>
+                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="2"
+                        class="score-button" onclick="setActive(this);">2</button>
+                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="3"
+                        class="score-button" onclick="setActive(this);">3</button>
+                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="4"
+                        class="score-button" onclick="setActive(this);">4</button>
+                    <button type="button" name="score_{{ file.model_name }}_{{ file.file_name }}" value="5"
+                        class="score-button" onclick="setActive(this);">5</button>
+                </div>
+                <input type="hidden" id="score_{{ file.model_name }}_{{ file.file_name }}"
+                    name="score_{{ file.model_name }}_{{ file.file_name }}"
+                    value="{{ scores.get('score_' ~ file.model_name ~ '_' ~ file.file_name, '') }}">
+            </div>
+            {% endfor %}
+
+            <div class="button-group">
+                <button type="submit" class="next-button">Next Page</button>
+            </div>
+        </form>
+    </div>
+</body>
+
+</html>

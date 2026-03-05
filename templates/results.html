@@ -94,6 +94,39 @@
         .update-button:hover {
             background-color: gray;
         }
+
+        h3 {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        h4 {
+            margin-top: 25px;
+            margin-bottom: 10px;
+            color: #666;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+        }
+
+        h5 {
+            margin-top: 15px;
+            margin-bottom: 8px;
+            color: #777;
+            font-size: 1.1em;
+        }
+
+        table {
+            margin-bottom: 15px;
+        }
+
+        td {
+            text-align: center;
+        }
+
+        th {
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -117,22 +150,71 @@
         </form>
 
         <div class="section-header">Overall Model Statistics</div>
-        {% for task_type, models in results_summary.items() %}
-        <h2>Task Type: {{ task_type }}</h2>
+        {% for pair_type, stats in results_summary.items() %}
+        <h2>Task Type: {{ pair_type }}</h2>
+        <p><strong>Total Comparisons:</strong> {{ stats.total_comparisons }}</p>
+
+        <h3>Text-Consistency</h3>
         <table>
             <thead>
                 <tr>
-                    <th>Model Name</th>
-                    <th>Mean Score</th>
-                    <th>Standard Deviation</th>
+                    <th>Model</th>
+                    <th>Wins</th>
+                    <th>Ties</th>
+                    <th>Losses</th>
                 </tr>
             </thead>
             <tbody>
-                {% for model in models %}
+                {% for model, stats in stats.text_consistency.items() %}
                 <tr>
-                    <td>{{ model.model_name }}</td>
-                    <td>{{ model.mean_score }}</td>
-                    <td>{{ model.stddev_score }}</td>
+                    <td>{{ model }}</td>
+                    <td>{{ stats.wins }} ({{ stats.wins_pct }}%)</td>
+                    <td>{{ stats.ties }} ({{ stats.ties_pct }}%)</td>
+                    <td>{{ stats.losses }} ({{ stats.losses_pct }}%)</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Audio-Video Alignment</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Wins</th>
+                    <th>Ties</th>
+                    <th>Losses</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model, stats in stats.audio_video_alignment.items() %}
+                <tr>
+                    <td>{{ model }}</td>
+                    <td>{{ stats.wins }} ({{ stats.wins_pct }}%)</td>
+                    <td>{{ stats.ties }} ({{ stats.ties_pct }}%)</td>
+                    <td>{{ stats.losses }} ({{ stats.losses_pct }}%)</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Overall Quality</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Wins</th>
+                    <th>Ties</th>
+                    <th>Losses</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model, stats in stats.overall_quality.items() %}
+                <tr>
+                    <td>{{ model }}</td>
+                    <td>{{ stats.wins }} ({{ stats.wins_pct }}%)</td>
+                    <td>{{ stats.ties }} ({{ stats.ties_pct }}%)</td>
+                    <td>{{ stats.losses }} ({{ stats.losses_pct }}%)</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -144,24 +226,76 @@
         <h2>User: {{ user_name }}</h2>
         <h3>Task Type: {{ user_data.task_type }}</h3>
         <h3>Number of Samples: {{ user_data.num_samples }}</h3>
+
+        {% for pair_type, stats in user_data.results.items() %}
+        <h4>{{ pair_type }} ({{ stats.total_comparisons }} comparisons)</h4>
+
+        <h5>Text-Consistency</h5>
         <table>
             <thead>
                 <tr>
-                    <th>Model Name</th>
-                    <th>Mean Score</th>
-                    <th>Standard Deviation</th>
+                    <th>Model</th>
+                    <th>Wins</th>
+                    <th>Ties</th>
+                    <th>Losses</th>
                 </tr>
             </thead>
             <tbody>
-                {% for model in user_data['task_summary'] %}
+                {% for model, stats in stats.text_consistency.items() %}
                 <tr>
-                    <td>{{ model.model_name }}</td>
-                    <td>{{ model.mean_score }}</td>
-                    <td>{{ model.stddev_score }}</td>
+                    <td>{{ model }}</td>
+                    <td>{{ stats.wins }} ({{ stats.wins_pct }}%)</td>
+                    <td>{{ stats.ties }} ({{ stats.ties_pct }}%)</td>
+                    <td>{{ stats.losses }} ({{ stats.losses_pct }}%)</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+
+        <h5>Audio-Video Alignment</h5>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Wins</th>
+                    <th>Ties</th>
+                    <th>Losses</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model, stats in stats.audio_video_alignment.items() %}
+                <tr>
+                    <td>{{ model }}</td>
+                    <td>{{ stats.wins }} ({{ stats.wins_pct }}%)</td>
+                    <td>{{ stats.ties }} ({{ stats.ties_pct }}%)</td>
+                    <td>{{ stats.losses }} ({{ stats.losses_pct }}%)</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h5>Overall Quality</h5>
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Wins</th>
+                    <th>Ties</th>
+                    <th>Losses</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for model, stats in stats.overall_quality.items() %}
+                <tr>
+                    <td>{{ model }}</td>
+                    <td>{{ stats.wins }} ({{ stats.wins_pct }}%)</td>
+                    <td>{{ stats.ties }} ({{ stats.ties_pct }}%)</td>
+                    <td>{{ stats.losses }} ({{ stats.losses_pct }}%)</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
         {% endfor %}
 
         <!-- <div class="button-group">
