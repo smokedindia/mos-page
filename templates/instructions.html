@@ -69,22 +69,28 @@
     <div class="container">
         <h1>Instructions</h1>
 
-        <p class="instruction">This experiment compares two videos based on Text-Consistency, Audio–Video Alignment, and
-            Overall Quality.
-            Please evaluate both videos according to the criteria below and select the better one for each metric (Left
-            Win or Right Win). If the two videos are similar in quality, you may choose Tie.</p>
+        <p class="instruction">In this experiment, you will watch a Ground Truth (reference) video, followed by several
+            generated sample videos. Your task is to rate each sample based on how similar it is to the Ground Truth
+            video.</p>
 
-        <p class="emphasis">1. Text-Consistency</p>
-        <p class="instruction">- How well the video aligns with the given text description.</p>
-
-        <p class="emphasis">2. Audio–Video Alignment</p>
-        <p class="instruction">- How well the audio and video match in terms of semantic relevance and synchronization.
+        <p class="emphasis">Rating Scale:</p>
+        <p class="instruction">
+            <strong>1</strong> - Very Dissimilar: The sample is very different from the Ground Truth<br>
+            <strong>2</strong> - Dissimilar: The sample has noticeable differences from the Ground Truth<br>
+            <strong>3</strong> - Neutral: The sample is somewhat similar to the Ground Truth<br>
+            <strong>4</strong> - Similar: The sample is quite similar to the Ground Truth<br>
+            <strong>5</strong> - Very Similar: The sample is almost identical to the Ground Truth
         </p>
 
-        <p class="emphasis">3. Overall Quality</p>
-        <p class="instruction">- The overall perceptual quality of both the video and audio.</p>
+        <p class="emphasis">What to Consider:</p>
+        <p class="instruction">
+            - Visual content and scene composition<br>
+            - Audio quality and speech characteristics<br>
+            - Audio-video synchronization<br>
+            - Overall quality and naturalness
+        </p>
 
-        <p class="emphasis">Thank you for your evaluation.</p>
+        <p class="emphasis">Thank you for your participation!</p>
 
         <button onclick="location.href='{{ url_for('score') }}'">Start Scoring</button>
     </div>

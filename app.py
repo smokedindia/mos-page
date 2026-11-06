@@ -22,13 +22,64 @@ import numpy as np
 # Add your admin credentials here
 ADMIN_USERNAME = "jhkim"
 ADMIN_PASSWORD = "aaai2025"
-PROJECT_NAME = "2026_TMLR_videogen"
+PROJECT_NAME = "MOS"
 
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{PROJECT_NAME}.db"
 db = SQLAlchemy(app)
+
+# Function to load samples for a given task type (emotion or speaker)
+def load_samples_for_task(task_type):
+    """Load samples based on task type (emotion or speaker)"""
+    samples = []
+    
+    # Determine the base path based on task type
+    if "emotion" in task_type.lower():
+        base_path = os.path.join("static", "samples", "MOS4", "emotion")
+    elif "speaker" in task_type.lower():
+        base_path = os.path.join("static", "samples", "MOS4", "speaker")
+    else:
+        print(f"Unknown task type: {task_type}")
+        return samples
+    
+    print(f"Loading samples from: {base_path}")
+    print(f"Directory exists: {os.path.exists(base_path)}")
+    
+    # Walk through the directory structure
+    for root, dirs, files in os.walk(base_path):
+        # Check if this directory contains video files (i.e., it's a leaf directory with models)
+        video_files = [f for f in files if f.endswith('.mp4')]
+        
+        if video_files and 'gt.mp4' in video_files:
+            # Get the relative path from base_path for the sample name
+            rel_path = os.path.relpath(root, base_path)
+            
+            # Extract model files
+            file_list = []
+            for video_file in sorted(video_files):
+                model_name = os.path.splitext(video_file)[0]  # e.g., 'gt', 'proposed', etc.
+                file_path = os.path.join(root, video_file)
+                
+                file_list.append({
+                    "model_name": model_name,
+                    "file_name": video_file,
+                    "file_path": file_path.replace("static/", ""),
+                    "text": rel_path,  # Use relative path as description
+                    "media_type": "video",
+                    "mime_type": "video/mp4"
+                })
+            
+            if file_list:
+                samples.append({
+                    "file_name": rel_path,
+                    "files": file_list
+                })
+    
+    print(f"Found {len(samples)} samples for task type: {task_type}")
+    return samples
+
 
 # Database Models
 class User(db.Model):
@@ -44,14 +95,9 @@ class User(db.Model):
 class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    model_name = db.Column(db.String(100), nullable=False)
     file_name = db.Column(db.String(100), nullable=False)
-    pair_type = db.Column(db.String(50), nullable=False)  # single_vs_multi or naive_vs_multi
-    model1_name = db.Column(db.String(50), nullable=False)  # First model in comparison
-    model2_name = db.Column(db.String(50), nullable=False)  # Second model in comparison
-    # Store actual winner name or "tie"
-    text_consistency = db.Column(db.String(20), nullable=False)  # model name or "tie"
-    audio_video_alignment = db.Column(db.String(20), nullable=False)  # model name or "tie"
-    overall_quality = db.Column(db.String(20), nullable=False)  # model name or "tie"
+    score = db.Column(db.Integer, nullable=False)
 
 
 # Ensure the database is created within the application context
@@ -101,87 +147,19 @@ def start():
         task_type = request.form["task_type"]
         user = User.query.filter_by(name=name).first()
 
-
-
         if not user:
-            # Sample directory structure
-            models = os.listdir(os.path.join("static", "samples", PROJECT_NAME, "javisdit"))
-            SAMPLE_DIRECTORIES = {model: f"static/samples/{PROJECT_NAME}/javisdit/{model}" for model in models}
-
-            # Load prompts from CSV
-            prompts = {}
-            prompt_csv_path = os.path.join("static", "samples", PROJECT_NAME, "prompt.csv")
-            if os.path.exists(prompt_csv_path):
-                with open(prompt_csv_path, 'r', encoding='utf-8') as f:
-                    csv_reader = csv.DictReader(f)
-                    for row in csv_reader:
-                        prompts[row['video_path']] = row['text']
-
-            samples = []
-
-            # Load sample filenames from one directory
-            model_to_use_for_listing = "single"  # Choose one model directory to list the filenames
-            model_path = SAMPLE_DIRECTORIES[model_to_use_for_listing]
-            file_names = [
-                file_name for file_name in os.listdir(model_path) if file_name.endswith(".mp4")
-            ]
-
-            # Create pairwise comparisons: single vs multi, naive vs multi
-            for file_name in file_names:
-                # Get prompt text
-                prompt_text = prompts.get(file_name, "")
-                
-                # Check if all three models exist for this sample
-                single_path = os.path.join(SAMPLE_DIRECTORIES.get("single", ""), file_name)
-                naive_path = os.path.join(SAMPLE_DIRECTORIES.get("naive", ""), file_name)
-                multi_path = os.path.join(SAMPLE_DIRECTORIES.get("multi", ""), file_name)
-                
-                # Pair 1: single vs multi
-                if os.path.exists(single_path) and os.path.exists(multi_path):
-                    samples.append({
-                        "file_name": file_name,
-                        "prompt": prompt_text,
-                        "pair_type": "single_vs_multi",
-                        "left": {
-                            "model_name": "single",
-                            "file_name": file_name,
-                            "file_path": single_path.replace("static/", ""),
-                        },
-                        "right": {
-                            "model_name": "multi",
-                            "file_name": file_name,
-                            "file_path": multi_path.replace("static/", ""),
-                        }
-                    })
-                
-                # Pair 2: naive vs multi
-                if os.path.exists(naive_path) and os.path.exists(multi_path):
-                    samples.append({
-                        "file_name": file_name,
-                        "prompt": prompt_text,
-                        "pair_type": "naive_vs_multi",
-                        "left": {
-                            "model_name": "naive",
-                            "file_name": file_name,
-                            "file_path": naive_path.replace("static/", ""),
-                        },
-                        "right": {
-                            "model_name": "multi",
-                            "file_name": file_name,
-                            "file_path": multi_path.replace("static/", ""),
-                        }
-                    })
-
             # New user, create a new record
-            num_pages = 20
-            # Filter samples by the selected task_type (comparison pair)
-            filtered_samples = [s for s in samples if s["pair_type"] == task_type]
-            selected_samples = random.sample(
-                filtered_samples, min(num_pages, len(filtered_samples))
-            )  # Randomly select samples
-            sample_sequence = json.dumps(
-                selected_samples
-            )  # Store the sequence as a JSON string
+            # Load samples for the selected task type
+            samples = load_samples_for_task(task_type)
+            
+            if not samples:
+                flash(f"No samples found for task type: {task_type}. Please check the sample directory.")
+                return redirect(url_for("start"))
+            
+            # Select a subset of samples (adjust num_pages as needed)
+            num_pages = min(20, len(samples))  # Use up to 20 samples or all available
+            selected_samples = random.sample(samples, num_pages) if len(samples) > num_pages else samples
+            sample_sequence = json.dumps(selected_samples)  # Store the sequence as a JSON string
 
             user = User(
                 name=name,
@@ -218,11 +196,13 @@ def score():
         return redirect(url_for("start"))
 
     user_id = session["user_id"]
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     page = session.get("page", 1)
-    sample_sequence = json.loads(
-        user.sample_sequence
-    )  # Load the sample sequence from the database
+    sample_sequence = json.loads(user.sample_sequence)  # Load the sample sequence from the database
+
+    if not sample_sequence:
+        flash("No samples found for this task. Please start again.")
+        return redirect(url_for("start"))
 
     if page > user.num_pages:
         user.completed = True
@@ -231,74 +211,70 @@ def score():
 
     current_sample = sample_sequence[page - 1]  # Get the current sample for this page
     
+    print(f"DEBUG: Current sample: {current_sample}")
+    print(f"DEBUG: Files in sample: {current_sample.get('files', [])}")
+    
+    # Separate GT from other files
+    gt_file = None
+    other_files = []
+    
+    for file in current_sample["files"]:
+        if file["model_name"] == "gt":
+            gt_file = file
+        else:
+            other_files.append(file)
+    
+    print(f"DEBUG: GT file: {gt_file}")
+    print(f"DEBUG: Other files count: {len(other_files)}")
+    
+    # Shuffle only the non-GT files
+    random.shuffle(other_files)
+    
     scores = {}
 
     if request.method == "POST":
-        # Get which models were actually displayed from hidden form fields
-        left_model = request.form.get("left_model")
-        right_model = request.form.get("right_model")
-        
-        # Get the three criteria scores
-        text_consistency = request.form.get("text_consistency")
-        audio_video_alignment = request.form.get("audio_video_alignment")
-        overall_quality = request.form.get("overall_quality")
-        
-        if text_consistency and audio_video_alignment and overall_quality and left_model and right_model:
-            # Convert position-based votes to model name votes
-            def convert_vote(vote, left_model, right_model):
-                if vote == "tie":
-                    return "tie"
-                elif vote == "left_win":
-                    return left_model
-                elif vote == "right_win":
-                    return right_model
-            
-            text_consistency_winner = convert_vote(text_consistency, left_model, right_model)
-            audio_video_alignment_winner = convert_vote(audio_video_alignment, left_model, right_model)
-            overall_quality_winner = convert_vote(overall_quality, left_model, right_model)
-            
-            # Save the score
-            new_score = Score(
-                user_id=user_id,
-                file_name=current_sample["file_name"],
-                pair_type=current_sample["pair_type"],
-                model1_name=left_model,
-                model2_name=right_model,
-                text_consistency=text_consistency_winner,
-                audio_video_alignment=audio_video_alignment_winner,
-                overall_quality=overall_quality_winner,
-            )
-            db.session.add(new_score)
-            db.session.commit()
-            
-            # Proceed to the next page
-            session["page"] += 1
-            return redirect(url_for("score"))
-        else:
-            # Return early if any criteria is missing
-            flash("Please complete all three scoring criteria before proceeding.")
-            # Re-apply random swap for display
-            if random.random() < 0.5:
-                current_sample["left"], current_sample["right"] = current_sample["right"], current_sample["left"]
-            return render_template(
-                "score.html",
-                sample=current_sample,
-                page=page,
-                total_pages=user.num_pages,
-                scores=scores,
-                task_type=user.task_type,
-            )
+        # Only check scores for non-GT files
+        for file in other_files:
+            score_key = f'score_{file["model_name"]}_{file["file_name"]}'
+            score_value = request.form.get(score_key)
+            if score_value:
+                # Save the score with model_name, file_name, and score
+                new_score = Score(
+                    user_id=user_id,
+                    model_name=file["model_name"],
+                    file_name=file["file_name"],
+                    score=int(score_value),
+                )
+                db.session.add(new_score)
+                db.session.commit()
+                scores[score_key] = int(score_value)  # Save the score in the dictionary
+            else:
+                # Return early if the sample is missing a score
+                flash("Please score all samples before proceeding to the next page.")
+                return render_template(
+                    "score.html",
+                    samples=[current_sample],  # Pass the current sample
+                    gt_file=gt_file,
+                    other_files=other_files,
+                    page=page,
+                    total_pages=user.num_pages,
+                    scores=scores,
+                    task_type=user.task_type,
+                )
 
-    # For GET requests, randomly swap left and right videos (50% chance)
-    if random.random() < 0.5:
-        current_sample["left"], current_sample["right"] = current_sample["right"], current_sample["left"]
+        # Proceed to the next page
+        session["page"] += 1
+
+        return redirect(url_for("score"))
 
     return render_template(
         "score.html",
-        sample=current_sample,
+        samples=[current_sample],  # Pass the current sample
+        gt_file=gt_file,
+        other_files=other_files,
         page=page,
         total_pages=user.num_pages,
-        scores=scores,
+        scores=scores,  # Pass the scores dictionary
         task_type=user.task_type,
     )
 
@@ -308,10 +284,13 @@ def end():
     if "user_id" not in session:
         return redirect(url_for("start"))
 
-    user = User.query.get(session["user_id"])
+    user = db.session.get(User, session["user_id"])
+    scores = {
+        f"{score.model_name}_{score.file_name}": score.score for score in user.scores
+    }
     session.clear()  # Clear session after survey completion
     return render_template(
-        "end.html", name=user.name, task_type=user.task_type
+        "end.html", name=user.name, task_type=user.task_type, scores=scores
     )
 
 
@@ -321,133 +300,70 @@ def results():
     selected_users = request.form.getlist("users") if request.method == "POST" else None
     all_users = User.query.all()
 
-    # Get all scores
-    query = db.session.query(Score).join(User, User.id == Score.user_id)
-    
+    # Prepare the query for calculating mean and standard deviation
+    query = (
+        db.session.query(
+            User.task_type,
+            Score.model_name,
+            func.avg(Score.score).label("mean_score"),
+            func.group_concat(Score.score, ",").label("all_scores"),
+        )
+        .join(Score, User.id == Score.user_id)
+        .group_by(User.task_type, Score.model_name)
+    )
+
     # Filter the query if users are selected
     if selected_users:
         query = query.filter(User.name.in_(selected_users))
-    
-    all_scores = query.all()
-    
-    # Calculate win rates for each pair type and criterion
+
+    # Execute the query and process results
+    results_data = query.all()
     results_summary = {}
-    
-    for pair_type in ["single_vs_multi", "naive_vs_multi"]:
-        pair_scores = [s for s in all_scores if s.pair_type == pair_type]
-        
-        if not pair_scores:
-            continue
-        
-        # Get all unique models for this pair type
-        all_models = set()
-        for score in pair_scores:
-            all_models.add(score.model1_name)
-            all_models.add(score.model2_name)
-        all_models = sorted(list(all_models))
-        
-        # Calculate stats by model name for each criterion
-        def calculate_model_stats(criterion_name):
-            model_stats = {}
-            for model in all_models:
-                model_stats[model] = {"wins": 0, "ties": 0, "losses": 0}
-            
-            for score in pair_scores:
-                winner = getattr(score, criterion_name)
-                model1 = score.model1_name
-                model2 = score.model2_name
-                
-                if winner == "tie":
-                    model_stats[model1]["ties"] += 1
-                    model_stats[model2]["ties"] += 1
-                else:
-                    # winner is the model name
-                    model_stats[winner]["wins"] += 1
-                    loser = model1 if winner == model2 else model2
-                    model_stats[loser]["losses"] += 1
-            
-            # Calculate percentages
-            for model in model_stats:
-                total = model_stats[model]["wins"] + model_stats[model]["ties"] + model_stats[model]["losses"]
-                if total > 0:
-                    model_stats[model]["wins_pct"] = round(100 * model_stats[model]["wins"] / total, 1)
-                    model_stats[model]["ties_pct"] = round(100 * model_stats[model]["ties"] / total, 1)
-                    model_stats[model]["losses_pct"] = round(100 * model_stats[model]["losses"] / total, 1)
-                else:
-                    model_stats[model]["wins_pct"] = 0
-                    model_stats[model]["ties_pct"] = 0
-                    model_stats[model]["losses_pct"] = 0
-            
-            return model_stats
-        
-        results_summary[pair_type] = {
-            "text_consistency": calculate_model_stats("text_consistency"),
-            "audio_video_alignment": calculate_model_stats("audio_video_alignment"),
-            "overall_quality": calculate_model_stats("overall_quality"),
-            "total_comparisons": len(pair_scores)
-        }
-    
-    # Calculate individual user statistics
+    for task_type, model_name, mean_score, all_scores in results_data:
+        scores_list = list(map(int, all_scores.split(",")))
+        # stddev_score = round(stdev(scores_list), 2) if len(scores_list) > 1 else 0
+        stddev_score = 1.96 * np.std(scores_list) / np.sqrt(len(scores_list))
+
+        if task_type not in results_summary:
+            results_summary[task_type] = []
+        results_summary[task_type].append(
+            {
+                "model_name": model_name,
+                "mean_score": round(mean_score, 2),
+                "stddev_score": stddev_score,
+            }
+        )
+
+    # Calculate individual user statistics including the number of samples rated
     user_summary = {}
     for user in all_users:
-        user_scores = [s for s in all_scores if s.user_id == user.id]
-        num_samples = len(user_scores)
-        
-        user_results = {}
-        for pair_type in ["single_vs_multi", "naive_vs_multi"]:
-            pair_scores = [s for s in user_scores if s.pair_type == pair_type]
-            if pair_scores:
-                # Get all unique models for this pair type
-                all_models = set()
-                for score in pair_scores:
-                    all_models.add(score.model1_name)
-                    all_models.add(score.model2_name)
-                all_models = sorted(list(all_models))
-                
-                # Calculate stats by model name for each criterion
-                def calculate_model_stats(criterion_name):
-                    model_stats = {}
-                    for model in all_models:
-                        model_stats[model] = {"wins": 0, "ties": 0, "losses": 0}
-                    
-                    for score in pair_scores:
-                        winner = getattr(score, criterion_name)
-                        model1 = score.model1_name
-                        model2 = score.model2_name
-                        
-                        if winner == "tie":
-                            model_stats[model1]["ties"] += 1
-                            model_stats[model2]["ties"] += 1
-                        else:
-                            # winner is the model name
-                            model_stats[winner]["wins"] += 1
-                            loser = model1 if winner == model2 else model2
-                            model_stats[loser]["losses"] += 1
-                    
-                    # Calculate percentages
-                    for model in model_stats:
-                        total = model_stats[model]["wins"] + model_stats[model]["ties"] + model_stats[model]["losses"]
-                        if total > 0:
-                            model_stats[model]["wins_pct"] = round(100 * model_stats[model]["wins"] / total, 1)
-                            model_stats[model]["ties_pct"] = round(100 * model_stats[model]["ties"] / total, 1)
-                            model_stats[model]["losses_pct"] = round(100 * model_stats[model]["losses"] / total, 1)
-                        else:
-                            model_stats[model]["wins_pct"] = 0
-                            model_stats[model]["ties_pct"] = 0
-                            model_stats[model]["losses_pct"] = 0
-                    
-                    return model_stats
-                
-                user_results[pair_type] = {
-                    "text_consistency": calculate_model_stats("text_consistency"),
-                    "audio_video_alignment": calculate_model_stats("audio_video_alignment"),
-                    "overall_quality": calculate_model_stats("overall_quality"),
-                    "total_comparisons": len(pair_scores)
+        user_task_summary = []
+        num_samples = Score.query.filter_by(user_id=user.id).count()
+        for task_type, model_name, mean_score, all_scores in (
+            db.session.query(
+                User.task_type,
+                Score.model_name,
+                func.avg(Score.score).label("mean_score"),
+                func.group_concat(Score.score, ",").label("all_scores"),
+            )
+            .join(Score, User.id == Score.user_id)
+            .group_by(User.task_type, Score.model_name)
+            .filter(User.name == user.name)
+        ):
+            scores_list = list(map(int, all_scores.split(",")))
+            stddev_score = round(stdev(scores_list), 2) if len(scores_list) > 1 else 0
+
+            user_task_summary.append(
+                {
+                    "model_name": model_name,
+                    "mean_score": round(mean_score, 2),
+                    "stddev_score": stddev_score,
                 }
-        
+            )
+
         user_summary[user.name] = {
             "task_type": user.task_type,
-            "results": user_results,
+            "task_summary": user_task_summary,
             "num_samples": num_samples,
             "include_in_statistics": (
                 user.name in selected_users if selected_users else True
@@ -460,8 +376,6 @@ def results():
         user_summary=user_summary,
         all_users=all_users,
     )
-
-
 
 
 def export_users_to_csv(users):
@@ -477,19 +391,10 @@ def export_users_to_csv(users):
 
     # Write score data
     writer.writerow([])
-    writer.writerow(["User ID", "File Name", "Pair Type", "Model 1", "Model 2", "Text Consistency Winner", "Audio-Video Alignment Winner", "Overall Quality Winner"])
+    writer.writerow(["User ID", "Model Name", "File Name", "Score"])
     for user in users:
         for score in user.scores:
-            writer.writerow([
-                user.id,
-                score.file_name,
-                score.pair_type,
-                score.model1_name,
-                score.model2_name,
-                score.text_consistency,
-                score.audio_video_alignment,
-                score.overall_quality
-            ])
+            writer.writerow([user.id, score.model_name, score.file_name, score.score])
 
     return si.getvalue()
 
@@ -504,13 +409,9 @@ def export_users_to_json(users):
             "completed": user.completed,
             "scores": [
                 {
+                    "model_name": score.model_name,
                     "file_name": score.file_name,
-                    "pair_type": score.pair_type,
-                    "model1_name": score.model1_name,
-                    "model2_name": score.model2_name,
-                    "text_consistency_winner": score.text_consistency,
-                    "audio_video_alignment_winner": score.audio_video_alignment,
-                    "overall_quality_winner": score.overall_quality,
+                    "score": score.score,
                 }
                 for score in user.scores
             ],
@@ -545,4 +446,4 @@ def export_data(file_type):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=1234)
